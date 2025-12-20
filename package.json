@@ -1,0 +1,19 @@
+{
+  "name": "blog",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "pnpm --filter api --filter web --parallel dev",
+    "db:gen": "pnpm --filter @my/prisma generate",
+    "db:push": "pnpm --filter @my/prisma exec prisma db push",
+    "dev:api": "pnpm --filter api start:dev",
+    "dev:web": "pnpm --filter web dev",
+    "build": "pnpm run db:gen && pnpm -r build",
+    "postinstall": "pnpm run db:gen"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.15.1"
+}

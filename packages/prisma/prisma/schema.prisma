@@ -1,0 +1,38 @@
+// 这是你的 Prisma schema 文件
+// 在此处了解更多信息: https://pris.ly/d/prisma-schema
+
+// 寻找加速查询或通过无服务器或边缘函数轻松扩展的方法吗？
+// 尝试 Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  // 指定使用的提供者，这里是 prisma-client
+  provider        = "prisma-client"
+  // 指定生成的客户端输出目录
+  output          = "../generated/client"
+}
+
+// datasource 定义了数据库连接信息
+datasource db {
+  // 指定数据库类型，这里是 PostgreSQL
+  provider = "postgresql"
+}
+
+model User {
+  id    Int     @id @default(autoincrement())
+  email String  @unique
+  name  String?
+  posts Post[]
+
+  @@map("users")
+}
+
+model Post {
+  id        Int     @id @default(autoincrement())
+  title     String
+  content   String?
+  published Boolean @default(false)
+  author    User?   @relation(fields: [authorId], references: [id])
+  authorId  Int?    @map("author_id")
+
+  @@map("posts")
+}

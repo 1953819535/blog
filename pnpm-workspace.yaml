@@ -1,0 +1,4 @@
+# pnpm-workspace.yaml
+packages:
+  - "apps/*" # 存放具体的业务应用（如网站、后台）
+  - "packages/*" # 存放公共包（如组件库、工具库）

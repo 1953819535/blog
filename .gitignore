@@ -1,0 +1,58 @@
+# Dependencies
+node_modules
+.nuxt
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw*
+
+# Environment files
+.env*
+!.env.example
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Prisma
+/packages/prisma/generated/
+/packages/prisma/.env
+
+# NestJS API
+/apps/api/dist/
+/apps/api/tmp/
+/apps/api/.tmp/
+
+# Nuxt/Web
+/apps/web/.nuxt/
+/apps/web/.output/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE
+.idea/
+*.idea
+
+# Temporary files
+*.tmp
+*.temp
