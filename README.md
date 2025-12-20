@@ -33,7 +33,13 @@ pnpm install
 
 1. 确保 PostgreSQL 数据库正在运行
 2. 在 [packages/prisma/.env](file:///e:/learn/blog/packages/prisma/.env) 文件中配置数据库连接字符串
-3. 推送数据库模式：
+3. 生成 Prisma 客户端：
+
+```bash
+pnpm run db:gen
+```
+
+4. 推送数据库模式：
 
 ```bash
 pnpm run db:push
@@ -65,8 +71,8 @@ pnpm run dev:web
 
 ### 访问应用
 
-- Web 应用: http://localhost:3000
-- API 应用: http://localhost:3001
+- Web 应用: http://localhost:3020
+- API 应用: http://localhost:3010
 
 ## 构建项目
 
@@ -77,11 +83,5 @@ pnpm run build
 这将为所有工作区应用执行构建过程。
 
 ## 其他命令
-
-生成 Prisma 客户端：
-
-```bash
-pnpm run db:gen
-```
 
 该命令会根据 Prisma schema 重新生成客户端代码。
