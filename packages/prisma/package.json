@@ -2,24 +2,24 @@
   "name": "@my/prisma",
   "version": "1.0.0",
   "type": "module",
-  "main": "./generated/client/client.ts",
-  "types": "./generated/client/client.ts",
+  "main": "./generated/client/client.js",
+  "types": "./generated/client/client.d.ts",
   "exports": {
     ".": {
-      "types": "./generated/client/client.ts",
-      "default": "./generated/client/client.ts"
+      "types": "./generated/client/client.d.ts",
+      "import": "./generated/client/client.js"
     },
     "./models": {
-      "types": "./generated/client/models.ts",
-      "default": "./generated/client/models.ts"
+      "types": "./generated/client/models.d.ts",
+      "import": "./generated/client/models.js"
     },
     "./enums": {
-      "types": "./generated/client/enums.ts",
-      "default": "./generated/client/enums.ts"
+      "types": "./generated/client/enums.d.ts",
+      "import": "./generated/client/enums.js"
     }
   },
   "scripts": {
-    "generate": "prisma generate",
+    "generate": "prisma generate && tsc",
     "db:push": "prisma db push"
   },
   "license": "ISC",

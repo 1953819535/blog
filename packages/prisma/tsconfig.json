@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./generated",
+    "rootDir": "./generated",
+    "declaration": true,
+    "emitDeclarationOnly": false,
+    "allowJs": false,
+    "checkJs": false,
+    "skipLibCheck": true
+  },
+  "include": ["generated/**/*.ts"],
+  "exclude": ["generated/**/*.d.ts", "generated/**/*.js"]
+}

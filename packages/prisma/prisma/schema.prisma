@@ -5,10 +5,8 @@
 // 尝试 Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  // 指定使用的提供者，这里是 prisma-client
-  provider        = "prisma-client"
-  // 指定生成的客户端输出目录
-  output          = "../generated/client"
+  provider = "prisma-client"
+  output   = "../generated/client"
 }
 
 // datasource 定义了数据库连接信息
