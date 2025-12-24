@@ -1,12 +1,21 @@
 {
   "name": "@my/prisma",
   "version": "1.0.0",
-  "main": "./index.ts",
-  "types": "./index.ts",
+  "type": "module",
+  "main": "./generated/client/client.ts",
+  "types": "./generated/client/client.ts",
   "exports": {
     ".": {
-      "types": "./index.ts",
-      "default": "./index.ts"
+      "types": "./generated/client/client.ts",
+      "default": "./generated/client/client.ts"
+    },
+    "./models": {
+      "types": "./generated/client/models.ts",
+      "default": "./generated/client/models.ts"
+    },
+    "./enums": {
+      "types": "./generated/client/enums.ts",
+      "default": "./generated/client/enums.ts"
     }
   },
   "scripts": {

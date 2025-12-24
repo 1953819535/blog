@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "module": "NodeNext",          // 关键：开启 ESM 模块解析
+    "moduleResolution": "NodeNext",// 关键
+    "target": "ES2021",
+    "esModuleInterop": true,
+    "baseUrl": "./",
+    // 注意：尽量不要在这里配置 paths，除非为了 IDE 提示辅助
+  }
+}

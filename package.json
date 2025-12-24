@@ -1,8 +1,12 @@
 {
   "name": "blog",
   "version": "1.0.0",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "description": "",
-  "main": "index.js",
   "scripts": {
     "dev": "pnpm --filter api --filter web --parallel dev",
     "db:gen": "pnpm --filter @my/prisma generate",
