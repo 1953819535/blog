@@ -16,7 +16,7 @@ const user: User = {
 const message = ref("");
 
 try {
-  const response = await $fetch<string>("http://localhost:3010/");
+  const response = await $fetch<string>("http://localhost:3010/api");
   message.value = response;
 } catch (error) {
   console.error("获取问候语失败:", error);
