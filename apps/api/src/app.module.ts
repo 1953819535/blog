@@ -1,4 +1,5 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, ValidationPipe } from '@nestjs/common';
+import { APP_PIPE, APP_INTERCEPTOR, APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { loggerConfig } from './common/config/logger.config.js';
 import { LoggerModule } from 'nestjs-pino';
@@ -7,6 +8,7 @@ import { RedisModule } from './modules/redis/redis.module.js';
 
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
+import { HttpExceptionFilter, LocalOnlyGuard, RequestIdMiddleware, TransformInterceptor } from './common/index.js';
 
 @Module({
   imports: [
@@ -23,6 +25,34 @@ import { AppService } from './app.service.js';
     RedisModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    // 本地访问守卫
+    {
+      provide: APP_GUARD,
+      useClass: LocalOnlyGuard,
+    },
+    // 全局验证管道 - 使用自定义 ValidationPipe
+    {
+      provide: APP_PIPE,
+      useClass: ValidationPipe,
+    },
+    // 全局响应转换拦截器 - 统一包装成功响应
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TransformInterceptor,
+    },
+    // 全局异常过滤器 - 统一处理异常响应
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
+    },
+    AppService
+  ],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    // 应用 RequestIdMiddleware - 必须在最前面，为所有请求生成 ID
+    consumer.apply(RequestIdMiddleware).forRoutes('*');
+    // Pino 会自动记录所有 HTTP 请求日志，无需 LoggerMiddleware
+  }
+}
