@@ -66,10 +66,31 @@ export class TransformInterceptor<T>
 
           case ResponseType.STANDARD:
           default:
-            // 标准响应：包装数据
+            // 标准响应：智能处理不同返回类型
+            let finalMessage = baseResponse.message;
+            let finalData = data;
+
+            // 情况1: 返回纯字符串 → 作为 message
+            if (typeof data === 'string') {
+              finalMessage = data;
+              finalData = null;
+            }
+            // 情况2: 返回对象且包含 message → 提取 message
+            else if (data && typeof data === 'object' && 'message' in data) {
+              finalMessage = data.message as string;
+              // 如果有 data 字段，使用 data；否则排除 message 后的其他字段
+              if ('data' in data) {
+                finalData = data.data;
+              } else {
+                const { message, ...rest } = data as any;
+                finalData = Object.keys(rest).length > 0 ? rest : null;
+              }
+            }
+
             return {
               ...baseResponse,
-              data,
+              message: finalMessage,
+              data: finalData,
             } as ApiResponse<T>;
         }
       }),

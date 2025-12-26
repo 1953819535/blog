@@ -1,14 +1,16 @@
 import { MiddlewareConsumer, Module, NestModule, ValidationPipe } from '@nestjs/common';
 import { APP_PIPE, APP_INTERCEPTOR, APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { HttpExceptionFilter, LocalOnlyGuard, RequestIdMiddleware, TransformInterceptor } from './common/index.js';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { loggerConfig } from './common/config/logger.config.js';
 import { LoggerModule } from 'nestjs-pino';
 import { PrismaModule } from './modules/prisma/prisma.module.js';
 import { RedisModule } from './modules/redis/redis.module.js';
+import { EmailModule } from './modules/email/email.module.js';
+import { VerificationModule } from './modules/verification/verification.module.js';
 
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
-import { HttpExceptionFilter, LocalOnlyGuard, RequestIdMiddleware, TransformInterceptor } from './common/index.js';
 
 @Module({
   imports: [
@@ -22,7 +24,9 @@ import { HttpExceptionFilter, LocalOnlyGuard, RequestIdMiddleware, TransformInte
       inject: [ConfigService],
     }),
     PrismaModule,
-    RedisModule
+    RedisModule,
+    EmailModule,
+    VerificationModule,
   ],
   controllers: [AppController],
   providers: [
