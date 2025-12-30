@@ -7,6 +7,10 @@ import { LoggerModule } from 'nestjs-pino';
 import { PrismaModule } from './modules/prisma/prisma.module.js';
 import { RedisModule } from './modules/redis/redis.module.js';
 import { EmailModule } from './modules/email/email.module.js';
+import { CryptoModule } from './modules/crypto/crypto.module.js';
+import { UsersModule } from './modules/users/users.module.js';
+import { AuthModule } from './modules/auth/auth.module.js';
+
 import { VerificationModule } from './modules/verification/verification.module.js';
 
 import { AppController } from './app.controller.js';
@@ -23,10 +27,13 @@ import { AppService } from './app.service.js';
       useFactory: loggerConfig,
       inject: [ConfigService],
     }),
+    CryptoModule, // 添加 CryptoModule 导入
     PrismaModule,
     RedisModule,
     EmailModule,
     VerificationModule,
+    UsersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [

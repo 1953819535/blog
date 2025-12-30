@@ -15,22 +15,66 @@ datasource db {
   provider = "postgresql"
 }
 
+// 用户核心表
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
-  posts Post[]
+  id       String  @id @default(uuid()) // 使用 UUID
+  email    String  @unique // 登录凭证
+  password String // 存 Hash 后的密码
+  nickname String  @default("用户") // 显示名称（可变）
+  isActive Boolean @default(true) @map("is_active") // 账号状态
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // 关联
+  profile Profile? // 1:1 关系
+  roles   UserRole[] // 1:N 关系（指向中间表）
+
+  // 未来扩展
+  // posts  Post[]
+  // comments Comment[]
 
   @@map("users")
 }
 
-model Post {
-  id        Int     @id @default(autoincrement())
-  title     String
-  content   String?
-  published Boolean @default(false)
-  author    User?   @relation(fields: [authorId], references: [id])
-  authorId  Int?    @map("author_id")
+// 用户档案表 (1:1)
+model Profile {
+  id     String  @id @default(uuid()) // 统一使用 UUID
+  userId String  @unique @map("user_id") // 外键 + Unique
+  avatar String? // 头像 URL
+  bio    String? // 个人简介
 
-  @@map("posts")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+// 角色表 (字典表)
+model Role {
+  id          String  @id // 使用字符串 ID，如: 'admin', 'user'
+  description String?
+  isSystem    Boolean @default(false) @map("is_system") // 系统角色不可删除
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  users UserRole[]
+
+  @@map("roles")
+}
+
+// 用户-角色中间表 (M:N)
+model UserRole {
+  userId     String   @map("user_id")
+  roleId     String   @map("role_id") // 改为 String，对应 Role.id
+  assignedAt DateTime @default(now()) @map("assigned_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId]) // 复合主键
+  @@map("user_roles")
 }

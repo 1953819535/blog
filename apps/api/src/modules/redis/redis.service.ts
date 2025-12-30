@@ -7,13 +7,14 @@ export class RedisService implements OnModuleDestroy {
   private readonly client: Redis;
 
   constructor(private configService: ConfigService) {
-    // 使用 Upstash Redis URL
+    // 获取 Redis URL
     const redisUrl = this.configService.get<string>('REDIS_URL');
 
     if (!redisUrl) {
       throw new Error('REDIS_URL is not defined in environment variables');
     }
 
+    // 初始化 Redis 客户端
     this.client = new Redis(redisUrl);
 
     this.client.on('connect', () => {
@@ -34,9 +35,14 @@ export class RedisService implements OnModuleDestroy {
 
   /**
    * 设置缓存
+   * @param key 键名
+   * @param value 值 (支持 string, number, object)
+   * @param ttl 过期时间 (秒)
    */
   async set(key: string, value: string | number | object, ttl?: number): Promise<void> {
+    // 如果是对象则转 JSON，否则转 String
     const stringValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
+
     if (ttl) {
       await this.client.setex(key, ttl, stringValue);
     } else {
@@ -45,16 +51,28 @@ export class RedisService implements OnModuleDestroy {
   }
 
   /**
-   * 获取缓存
+   * 获取原始字符串缓存 (不进行 JSON 解析)
+   * ✅ 推荐用于：验证码、Token、SessionID 等纯字符串场景
+   * 解决问题：避免纯数字字符串(如 "123456")被自动转为 Number 类型
+   */
+  async getString(key: string): Promise<string | null> {
+    return await this.client.get(key);
+  }
+
+  /**
+   * 获取缓存 (尝试自动解析 JSON)
+   * 适用于：存储的是对象、数组、或者你不确定类型但希望自动转换的场景
    */
   async get<T = string>(key: string): Promise<T | null> {
     const value = await this.client.get(key);
     if (!value) return null;
 
     try {
+      // 尝试解析 JSON (例如对象、数字、布尔值)
       return JSON.parse(value) as T;
     } catch {
-      return value as T;
+      // 解析失败则返回原始字符串
+      return value as unknown as T;
     }
   }
 
@@ -67,8 +85,11 @@ export class RedisService implements OnModuleDestroy {
 
   /**
    * 批量删除(支持模式匹配)
+   * 例如: delByPattern('user:*')
    */
   async delByPattern(pattern: string): Promise<void> {
+    // 这里的 keys 方法在生产环境大量 key 时要注意性能，但在 Upstash/开发环境通常没问题
+    // 生产环境建议使用 scanStream
     const keys = await this.client.keys(pattern);
     if (keys.length > 0) {
       await this.client.del(...keys);
@@ -96,6 +117,10 @@ export class RedisService implements OnModuleDestroy {
   async ttl(key: string): Promise<number> {
     return await this.client.ttl(key);
   }
+
+  // ============================
+  // Hash 操作
+  // ============================
 
   /**
    * Hash 操作 - 设置
@@ -134,6 +159,10 @@ export class RedisService implements OnModuleDestroy {
   async hdel(key: string, ...fields: string[]): Promise<void> {
     await this.client.hdel(key, ...fields);
   }
+
+  // ============================
+  // List / Set / ZSet / Counter
+  // ============================
 
   /**
    * 列表操作 - 左侧推入
