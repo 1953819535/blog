@@ -8,8 +8,10 @@ import {
   SendRegisterVerificationDto,
   SendLoginVerificationDto
 } from './dto/index.js';
+import { Public } from '../../common/index.js';
 
 @ApiTags('认证')
+@Public()
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) { }

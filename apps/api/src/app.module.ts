@@ -1,6 +1,6 @@
 import { MiddlewareConsumer, Module, NestModule, ValidationPipe } from '@nestjs/common';
 import { APP_PIPE, APP_INTERCEPTOR, APP_FILTER, APP_GUARD } from '@nestjs/core';
-import { HttpExceptionFilter, LocalOnlyGuard, RequestIdMiddleware, TransformInterceptor } from './common/index.js';
+import { HttpExceptionFilter, LocalOnlyGuard, AuthGuard, RequestIdMiddleware, TransformInterceptor } from './common/index.js';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { loggerConfig } from './common/config/logger.config.js';
 import { validateEnv } from './common/config/env.validation.js';
@@ -55,6 +55,11 @@ import { AppService } from './app.service.js';
     {
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
+    },
+    // 全局身份验证守卫
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
     },
     AppService
   ],
