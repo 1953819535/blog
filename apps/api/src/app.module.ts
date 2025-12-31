@@ -3,6 +3,7 @@ import { APP_PIPE, APP_INTERCEPTOR, APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { HttpExceptionFilter, LocalOnlyGuard, RequestIdMiddleware, TransformInterceptor } from './common/index.js';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { loggerConfig } from './common/config/logger.config.js';
+import { validateEnv } from './common/config/env.validation.js';
 import { LoggerModule } from 'nestjs-pino';
 import { PrismaModule } from './modules/prisma/prisma.module.js';
 import { RedisModule } from './modules/redis/redis.module.js';
@@ -19,6 +20,7 @@ import { AppService } from './app.service.js';
     ConfigModule.forRoot({
       isGlobal: true, // 设置为全局模块，其他模块无需再次导入
       envFilePath: '.env', // 指定文件路径，默认就是 .env
+      validate: validateEnv, // 启动时验证环境变量
     }),
     LoggerModule.forRootAsync({
       imports: [ConfigModule],
