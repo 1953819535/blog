@@ -8,6 +8,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { PrismaModule } from './modules/prisma/prisma.module.js';
 import { RedisModule } from './modules/redis/redis.module.js';
 import { EmailModule } from './modules/email/email.module.js';
+import { R2Module } from './modules/r2/r2.module.js';
 import { CryptoModule } from './modules/crypto/crypto.module.js';
 import { UsersModule } from './modules/users/users.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
@@ -31,6 +32,7 @@ import { AppService } from './app.service.js';
     PrismaModule,
     RedisModule,
     EmailModule,
+    R2Module,
     UsersModule,
     AuthModule,
   ],
