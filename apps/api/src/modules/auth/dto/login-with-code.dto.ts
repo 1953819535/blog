@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, Length } from 'class-validator';
+import { IsEmail, IsNotEmpty, Length, IsString } from 'class-validator';
 
-export class VerifyCodeDto {
+export class LoginWithCodeDto {
   @ApiProperty({
-    description: '邮箱地址',
+    description: '用户邮箱',
     example: 'user@example.com',
   })
   @IsEmail({}, { message: '请输入有效的邮箱地址' })
@@ -13,11 +13,9 @@ export class VerifyCodeDto {
   @ApiProperty({
     description: '6位验证码',
     example: '123456',
-    minLength: 6,
-    maxLength: 6,
   })
-  @IsString({ message: '验证码必须是字符串' })
-  @Length(6, 6, { message: '验证码必须是6位数字' })
+  @IsString()
   @IsNotEmpty({ message: '验证码不能为空' })
+  @Length(6, 6, { message: '验证码必须是6位' })
   code: string;
 }

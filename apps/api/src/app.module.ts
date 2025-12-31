@@ -11,8 +11,6 @@ import { CryptoModule } from './modules/crypto/crypto.module.js';
 import { UsersModule } from './modules/users/users.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 
-import { VerificationModule } from './modules/verification/verification.module.js';
-
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 
@@ -31,7 +29,6 @@ import { AppService } from './app.service.js';
     PrismaModule,
     RedisModule,
     EmailModule,
-    VerificationModule,
     UsersModule,
     AuthModule,
   ],

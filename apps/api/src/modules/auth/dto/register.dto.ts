@@ -1,9 +1,9 @@
-import { IsString, IsEmail, IsNotEmpty, IsNumberString } from 'class-validator';
+import { IsString, IsEmail, IsNotEmpty, Length } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterDto {
-  @IsEmail()
-  @IsNotEmpty()
+  @IsEmail({}, { message: '请输入有效的邮箱地址' })
+  @IsNotEmpty({ message: '邮箱地址不能为空' })
   @ApiProperty({
     example: 'example@email.com',
     description: '邮箱地址'
@@ -11,7 +11,7 @@ export class RegisterDto {
   email: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: '密码不能为空' })
   @ApiProperty({
     example: 'MyPassword123',
     description: '密码'
@@ -19,10 +19,11 @@ export class RegisterDto {
   password: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: '验证码不能为空' })
+  @Length(6, 6, { message: '验证码必须是6位' })
   @ApiProperty({
     example: '123456',
-    description: '验证码'
+    description: '6位验证码'
   })
   code: string;
 }

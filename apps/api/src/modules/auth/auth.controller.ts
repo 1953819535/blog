@@ -2,7 +2,12 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { AuthService } from './auth.service.js';
 import { RegisterDto } from './dto/register.dto.js';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { SendRegisterVerificationDto } from './dto/send-register-verification.dto.js';
+import {
+  LoginWithPwdDto,
+  LoginWithCodeDto,
+  SendRegisterVerificationDto,
+  SendLoginVerificationDto
+} from './dto/index.js';
 
 @ApiTags('认证')
 @Controller('auth')
@@ -19,5 +24,23 @@ export class AuthController {
   @Post('register')
   register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
+  }
+
+  @ApiOperation({ summary: '发送登录验证码' })
+  @Post('send-login-verification')
+  async sendLoginVerification(@Body() dto: SendLoginVerificationDto) {
+    return await this.authService.sendLoginVerification(dto.email);
+  }
+
+  @ApiOperation({ summary: '密码登录' })
+  @Post('login-with-pwd')
+  loginWithPassword(@Body() loginDto: LoginWithPwdDto) {
+    return this.authService.loginWithPassword(loginDto.email, loginDto.password);
+  }
+
+  @ApiOperation({ summary: '验证码登录' })
+  @Post('login-with-code')
+  loginWithCode(@Body() loginDto: LoginWithCodeDto) {
+    return this.authService.loginWithCode(loginDto.email, loginDto.code);
   }
 }

@@ -3,7 +3,18 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { CryptoService } from '../crypto/crypto.service.js';
-import { User, Profile } from '@my/prisma';
+import { User, Profile, Prisma } from '@my/prisma';
+
+// 定义包含关联数据的用户类型
+type UserWithRelations = Prisma.UserGetPayload<{
+  include: {
+    profile: true;
+    roles: true;
+  };
+}>;
+
+// 定义安全的用户返回类型（排除密码）
+type SafeUser = Omit<UserWithRelations, 'password'>;
 
 @Injectable()
 export class UsersService {
@@ -13,10 +24,11 @@ export class UsersService {
   ) { }
 
   // 通过邮箱查找用户，用于登录验证
-  async findByEmail(email: string): Promise<Omit<User, 'password'> | null> {
+  async findByEmail(email: string): Promise<SafeUser | null> {
     const user = await this.prisma.user.findUnique({
       where: { email },
       include: {
+        profile: true,
         roles: true
       }
     });
@@ -31,7 +43,7 @@ export class UsersService {
   }
 
   // 创建用户，用于注册功能
-  async create(createUserDto: CreateUserDto): Promise<Omit<User, 'password'>> {
+  async create(createUserDto: CreateUserDto): Promise<SafeUser> {
     // 检查邮箱是否已存在
     const existingUser = await this.prisma.user.findUnique({
       where: { email: createUserDto.email },
@@ -73,10 +85,11 @@ export class UsersService {
   }
 
   // 验证用户密码，用于登录验证
-  async validateUserPassword(email: string, password: string): Promise<Omit<User, 'password'> | null> {
+  async validateUserPassword(email: string, password: string): Promise<SafeUser | null> {
     const user = await this.prisma.user.findUnique({
       where: { email },
       include: {
+        profile: true,
         roles: true
       }
     });
