@@ -32,14 +32,14 @@ export class AuthService {
    * @param user 用户信息
    * @returns JWT令牌和有效载荷
    */
-  async generateJwtToken(user: SafeUser): Promise<{ access_token: string; payload: JwtPayload }> {
+  async generateJwtToken(user: SafeUser): Promise<{ accessToken: string; payload: JwtPayload }> {
     const payload: JwtPayload = {
       userId: user.id,
       email: user.email,
       roles: user.roles.map(role => role.roleId),
     };
     return {
-      access_token: await this.jwtService.signAsync(payload),
+      accessToken: await this.jwtService.signAsync(payload),
       payload: payload,
     };
   }
@@ -156,6 +156,7 @@ export class AuthService {
     const user = await this.usersService.create({
       email: registerDto.email,
       password: registerDto.password,
+      nickname: registerDto.nickname,
     });
     return this.generateJwtToken(user);
   }

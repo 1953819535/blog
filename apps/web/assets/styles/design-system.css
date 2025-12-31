@@ -1,0 +1,62 @@
+:root {
+  /* 锤子便签风格 - 基于实际 markdown-css-smartisan 配色 */
+  --color-primary: #795548;
+  --color-primary-light: #8d6e63;
+  --color-primary-dark: #5d4037;
+
+  --color-accent: #0366d6;
+  --color-accent-light: #2188ff;
+  --color-accent-dark: #005cc5;
+
+  /* 中性色 - 锤子便签纸质风格 */
+  --color-text: #434343;
+  --color-text-secondary: #645647;
+  --color-text-tertiary: #999999;
+  --color-text-inverse: #ffffff;
+
+  --color-bg: #f0dab3;
+  --color-bg-card: #fffcf6;
+  --color-bg-input: #fffcf6;
+  --color-bg-hover: #f6f8fa;
+
+  --color-border: #ebdfd5;
+  --color-border-light: #e9e5d9;
+
+  --color-success: #22863a;
+  --color-warning: #e36209;
+  --color-error: #d73a49;
+
+  /* 阴影 - 锤子便签风格 */
+  --shadow-sm: 0 1px 3px rgba(69, 18, 10, 0.08);
+  --shadow-md: 0 3px 8px rgba(69, 18, 10, 0.15);
+  --shadow-lg: 0 8px 16px rgba(69, 18, 10, 0.2);
+  --shadow-xl: 0 16px 32px rgba(69, 18, 10, 0.25);
+
+  /* 圆角 */
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --radius-xl: 6px;
+
+  /* 间距 */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 48px;
+
+  /* 字体 */
+  --font-xs: 11px;
+  --font-sm: 12px;
+  --font-base: 14px;
+  --font-lg: 16px;
+  --font-xl: 18px;
+  --font-2xl: 24px;
+  --font-3xl: 32px;
+
+  /* 过渡 */
+  --transition-fast: 150ms ease-out;
+  --transition-base: 250ms ease-out;
+  --transition-slow: 350ms ease-out;
+}
