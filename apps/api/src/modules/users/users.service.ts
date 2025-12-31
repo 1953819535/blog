@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { CryptoService } from '../crypto/crypto.service.js';
+import { R2Service } from '../r2/r2.service.js';
 import { User, Profile, Prisma } from '@my/prisma';
 
 // 定义包含关联数据的用户类型
@@ -21,7 +22,8 @@ export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cryptoService: CryptoService,
-  ) { }
+    private readonly r2Service: R2Service,
+  ) {}
 
   // 通过邮箱查找用户，用于登录验证
   async findByEmail(email: string): Promise<SafeUser | null> {
@@ -129,15 +131,59 @@ export class UsersService {
     return result;
   }
 
-  // 更新用户信息
+  // 更新用户信息（支持同时更新 User 和 Profile）
   async update(id: string, updateData: UpdateUserDto) {
+    const { profile, ...userData } = updateData;
+
+    // 处理头像更新
+    let finalProfileData = profile;
+    if (profile?.avatar) {
+      // 1. 获取当前用户的旧头像
+      const currentUser = await this.prisma.user.findUnique({
+        where: { id },
+        include: { profile: true },
+      });
+
+      const oldAvatar = currentUser?.profile?.avatar;
+
+      // 2. 如果头像是临时路径（temp/ 开头），确认上传
+      if (profile.avatar.startsWith('temp/')) {
+        const confirmed = await this.r2Service.confirmUpload(
+          profile.avatar,
+          `users/${id}/avatars`,
+        );
+        finalProfileData = { ...profile, avatar: confirmed.key };
+      }
+
+      // 3. 删除旧头像（如果存在且不同）
+      if (oldAvatar && oldAvatar !== finalProfileData?.avatar && !oldAvatar.startsWith('temp/')) {
+        try {
+          await this.r2Service.deleteFile(oldAvatar);
+        } catch (error) {
+          // 删除失败不影响更新流程
+          console.error('删除旧头像失败:', error);
+        }
+      }
+    }
+
+    // 更新用户和档案信息
     const user = await this.prisma.user.update({
       where: { id },
-      data: updateData,
+      data: {
+        ...userData,
+        ...(finalProfileData && {
+          profile: {
+            upsert: {
+              create: finalProfileData,
+              update: finalProfileData,
+            },
+          },
+        }),
+      },
       include: {
         profile: true,
-        roles: true
-      }
+        roles: true,
+      },
     });
 
     const { password, ...result } = user;

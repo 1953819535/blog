@@ -1,7 +1,8 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { R2Service } from './r2.service.js';
 import { R2Controller } from './r2.controller.js';
 
+@Global()
 @Module({
   controllers: [R2Controller],
   providers: [R2Service],
