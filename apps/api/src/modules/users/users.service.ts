@@ -4,18 +4,8 @@ import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { CryptoService } from '../crypto/crypto.service.js';
 import { R2Service } from '../r2/r2.service.js';
-import { User, Profile, Prisma } from '@my/prisma';
-
-// 定义包含关联数据的用户类型
-type UserWithRelations = Prisma.UserGetPayload<{
-  include: {
-    profile: true;
-    roles: true;
-  };
-}>;
-
-// 定义安全的用户返回类型（排除密码）
-type SafeUser = Omit<UserWithRelations, 'password'>;
+import { User, Profile } from '@my/prisma';
+import type { SafeUser } from './types/index.js';
 
 @Injectable()
 export class UsersService {
@@ -104,6 +94,10 @@ export class UsersService {
     const isValidPassword = await this.cryptoService.comparePassword(password, user.password);
 
     if (!isValidPassword) {
+      return null;
+    }
+
+    if (user.isActive === false) {
       return null;
     }
 

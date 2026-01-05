@@ -160,7 +160,7 @@ const handleLogin = async () => {
       nickname: userInfo.nickname,
       avatar: userInfo.profile?.avatar || ''
     }
-    setAuth(loginData.accessToken, userInfoToSave)
+    setAuth(loginData.access_token, userInfoToSave)
 
     success.value = '登录成功！即将跳转...'
 

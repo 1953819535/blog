@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
 import { RegisterDto } from './dto/register.dto.js';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -8,7 +8,9 @@ import {
   SendRegisterVerificationDto,
   SendLoginVerificationDto
 } from './dto/index.js';
-import { Public } from '../../common/index.js';
+import { CurrentUser, Public } from '../../common/index.js';
+import { LocalAuthGuard } from './guards/local-auth.guard.js';
+import type { SafeUser } from '../users/types/index.js';
 
 @ApiTags('认证')
 @Public()
@@ -35,9 +37,14 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: '密码登录' })
+  @UseGuards(LocalAuthGuard) // 使用 Passport Local 策略验证账号密码
   @Post('login-with-pwd')
-  loginWithPassword(@Body() loginDto: LoginWithPwdDto) {
-    return this.authService.loginWithPassword(loginDto.email, loginDto.password);
+  async loginWithPassword(
+    @Body() _loginDto: LoginWithPwdDto, // 仅用于 Swagger 文档，实际验证由 LocalAuthGuard 处理
+    @CurrentUser() user: SafeUser
+  ) {
+    // LocalStrategy 验证通过后，user 会被挂载到 request 上
+    return this.authService.generateJwtToken(user);
   }
 
   @ApiOperation({ summary: '验证码登录' })

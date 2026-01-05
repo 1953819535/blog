@@ -57,7 +57,7 @@ export interface UserInfo {
  * 登录响应数据
  */
 export interface LoginResponse {
-  accessToken: string
+  access_token: string
   payload: {
     userId: string
     email: string

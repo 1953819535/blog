@@ -5,18 +5,7 @@ import { EmailService } from '../email/email.service.js';
 import { UsersService } from '../users/users.service.js';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from './interfaces/jwt-payload.interface.js';
-import { Prisma } from '@my/prisma';
-
-// 定义包含关联数据的用户类型
-type UserWithRelations = Prisma.UserGetPayload<{
-  include: {
-    profile: true;
-    roles: true;
-  };
-}>;
-
-// 定义安全的用户返回类型（排除密码）
-type SafeUser = Omit<UserWithRelations, 'password'>;
+import type { SafeUser } from '../users/types/index.js';
 
 @Injectable()
 export class AuthService {
@@ -32,15 +21,15 @@ export class AuthService {
    * @param user 用户信息
    * @returns JWT令牌和有效载荷
    */
-  async generateJwtToken(user: SafeUser): Promise<{ accessToken: string; payload: JwtPayload }> {
+  async generateJwtToken(user: SafeUser): Promise<{ access_token: string; user: SafeUser }> {
     const payload: JwtPayload = {
       userId: user.id,
       email: user.email,
       roles: user.roles.map(role => role.roleId),
     };
     return {
-      accessToken: await this.jwtService.signAsync(payload),
-      payload: payload,
+      access_token: await this.jwtService.signAsync(payload),
+      user: user
     };
   }
 
@@ -158,19 +147,6 @@ export class AuthService {
       password: registerDto.password,
       nickname: registerDto.nickname,
     });
-    return this.generateJwtToken(user);
-  }
-
-  /**
-   * 用户密码登录
-   * @param email 用户邮箱
-   * @param password 用户密码
-   */
-  async loginWithPassword(email: string, password: string) {
-    const user = await this.usersService.validateUserPassword(email, password);
-    if (!user) {
-      throw new HttpException('邮箱或密码错误', HttpStatus.UNAUTHORIZED);
-    }
     return this.generateJwtToken(user);
   }
 

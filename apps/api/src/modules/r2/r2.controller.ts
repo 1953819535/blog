@@ -15,7 +15,7 @@ import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { PresignedUrlDto } from './dto/index.js';
 import { CurrentUser } from '../../common/index.js';
-import type { JwtPayload } from '../auth/interfaces/jwt-payload.interface.js';
+import type { SafeUser } from '../users/types/index.js';
 
 /**
  * R2 文件存储控制器
@@ -28,10 +28,10 @@ export class R2Controller {
   @ApiOperation({ summary: '获取预签名上传 URL' })
   @Post('presigned-url')
   async getPresignedUrl(
-    @CurrentUser() user: JwtPayload,
+    @CurrentUser() user: SafeUser,
     @Body() body: PresignedUrlDto,
   ) {
-    const userId = user.userId;
+    const userId = user.id;
     const folder = `temp/users/${userId}/uploads`;
     const fileExtension = path.extname(body.filename);
     const uniqueFileName = `${uuidv4()}${fileExtension}`;
@@ -58,7 +58,7 @@ export class R2Controller {
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
-    @CurrentUser() user: JwtPayload,
+    @CurrentUser() user: SafeUser,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -69,7 +69,7 @@ export class R2Controller {
     )
     file: Express.Multer.File,
   ) {
-    const userId = user.userId;
+    const userId = user.id;
     const folder = `temp/users/${userId}/uploads`;
     const fileExtension = path.extname(file.originalname);
     const uniqueFileName = `${uuidv4()}${fileExtension}`;

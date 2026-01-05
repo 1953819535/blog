@@ -156,7 +156,7 @@ const handleRegister = async () => {
     const response = await register(formData)
 
     // 先保存 token
-    localStorage.setItem('token', response.data.accessToken)
+    localStorage.setItem('token', response.data.access_token)
 
     // 获取用户完整信息
     const userResponse = await getUserProfile()
