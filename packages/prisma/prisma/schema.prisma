@@ -17,11 +17,12 @@ datasource db {
 
 // 用户核心表
 model User {
-  id       String  @id @default(uuid()) // 使用 UUID
-  email    String  @unique // 登录凭证
-  password String // 存 Hash 后的密码
-  nickname String  @default("用户") // 显示名称（可变）
-  isActive Boolean @default(true) @map("is_active") // 账号状态
+  id           String  @id @default(uuid()) // 使用 UUID
+  email        String  @unique // 登录凭证
+  password     String // 存 Hash 后的密码
+  nickname     String  @default("用户") // 显示名称（可变）
+  isActive     Boolean @default(true) @map("is_active") // 账号状态
+  tokenVersion Int     @default(0) @map("token_version") // JWT token 版本号，用于使旧 token 失效
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

@@ -36,6 +36,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (user.isActive === false) {
       throw new UnauthorizedException('用户已被禁用');
     }
+
+    // 验证 token 版本号，如果不匹配说明密码已被重置
+    if (user.tokenVersion !== payload.tokenVersion) {
+      throw new UnauthorizedException('登录凭证已失效，请重新登录');
+    }
+
     return user;
   }
 }

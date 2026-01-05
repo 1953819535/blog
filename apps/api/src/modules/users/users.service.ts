@@ -184,13 +184,27 @@ export class UsersService {
     return result;
   }
 
-  // 更新用户密码
+  // 更新用户密码并递增 token 版本号（使所有旧 token 失效）
   async updatePassword(id: string, newPassword: string) {
     const hashedPassword = await this.cryptoService.hashPassword(newPassword);
 
+    // 获取当前用户的 tokenVersion
+    const currentUser = await this.prisma.user.findUnique({
+      where: { id },
+      select: { tokenVersion: true },
+    });
+
+    if (!currentUser) {
+      throw new HttpException('用户不存在', HttpStatus.NOT_FOUND);
+    }
+
+    // 更新密码并递增 tokenVersion
     return await this.prisma.user.update({
       where: { id },
-      data: { password: hashedPassword },
+      data: {
+        password: hashedPassword,
+        tokenVersion: currentUser.tokenVersion + 1,
+      },
     });
   }
 
@@ -250,6 +264,7 @@ export class UsersService {
         email: true,
         nickname: true,
         isActive: true,
+        tokenVersion: true,
         createdAt: true,
         updatedAt: true,
         profile: true,

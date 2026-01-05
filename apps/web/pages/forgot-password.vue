@@ -1,27 +1,12 @@
 <template>
-  <div class="login-page page-container">
-    <div class="login-card card">
+  <div class="forgot-password-page page-container">
+    <div class="forgot-password-card card">
       <div class="card-header">
-        <h1 class="title-2 title-center">登录</h1>
-        <p class="text text-center text-base mt-sm">欢迎回到博客</p>
+        <h1 class="title-2 title-center">重置密码</h1>
+        <p class="text text-center text-base mt-sm">通过邮箱验证码重置您的密码</p>
       </div>
 
-      <div class="tabs">
-        <button
-          :class="['tab', { active: loginType === 'password' }]"
-          @click="loginType = 'password'"
-        >
-          密码登录
-        </button>
-        <button
-          :class="['tab', { active: loginType === 'code' }]"
-          @click="loginType = 'code'"
-        >
-          验证码登录
-        </button>
-      </div>
-
-      <form @submit.prevent="handleLogin" class="form">
+      <form @submit.prevent="handleResetPassword" class="form">
         <div class="form-group">
           <label class="form-label form-label-required">邮箱</label>
           <input
@@ -33,21 +18,7 @@
           />
         </div>
 
-        <div v-if="loginType === 'password'" class="form-group">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <label class="form-label form-label-required">密码</label>
-            <NuxtLink to="/forgot-password" class="link text-sm">忘记密码?</NuxtLink>
-          </div>
-          <input
-            v-model="formData.password"
-            type="password"
-            class="input"
-            placeholder="请输入密码"
-            required
-          />
-        </div>
-
-        <div v-else class="form-group">
+        <div class="form-group">
           <label class="form-label form-label-required">验证码</label>
           <div class="input-group">
             <input
@@ -69,14 +40,38 @@
           </div>
         </div>
 
+        <div class="form-group">
+          <label class="form-label form-label-required">新密码</label>
+          <input
+            v-model="formData.newPassword"
+            type="password"
+            class="input"
+            placeholder="请输入新密码（至少6位）"
+            minlength="6"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label form-label-required">确认密码</label>
+          <input
+            v-model="confirmPassword"
+            type="password"
+            class="input"
+            placeholder="请再次输入新密码"
+            minlength="6"
+            required
+          />
+        </div>
+
         <button type="submit" class="btn btn-primary btn-block btn-lg" :disabled="loading">
-          {{ loading ? '登录中...' : '登录' }}
+          {{ loading ? '重置中...' : '重置密码' }}
         </button>
       </form>
 
       <p class="text text-center text-base mt-sm">
-        还没有账号？
-        <NuxtLink to="/register" class="link">立即注册</NuxtLink>
+        想起密码了？
+        <NuxtLink to="/login" class="link">返回登录</NuxtLink>
       </p>
 
       <div v-if="error" class="message message-error mt-sm">{{ error }}</div>
@@ -88,16 +83,17 @@
 <script setup lang="ts">
 import { reactive, ref, onUnmounted } from 'vue'
 import { handleApiError } from '~/utils/api'
-import { sendLoginVerification, loginWithPassword, loginWithCode } from '~/api'
+import { sendResetPasswordVerification, resetPassword } from '~/api'
 
-const loginType = ref<'password' | 'code'>('password')
+const { setAuth } = useAuth()
 
 const formData = reactive({
   email: '',
-  password: '',
-  code: ''
+  code: '',
+  newPassword: ''
 })
 
+const confirmPassword = ref('')
 const loading = ref(false)
 const codeSending = ref(false)
 const countdown = ref(0)
@@ -116,7 +112,7 @@ const handleSendCode = async () => {
   error.value = ''
 
   try {
-    const response = await sendLoginVerification(formData.email)
+    const response = await sendResetPasswordVerification(formData.email)
     success.value = response.data.message
 
     countdown.value = 60
@@ -138,27 +134,39 @@ const handleSendCode = async () => {
   }
 }
 
-const { setAuth } = useAuth()
-
-const handleLogin = async () => {
-  loading.value = true
+const handleResetPassword = async () => {
   error.value = ''
   success.value = ''
 
+  // 验证密码
+  if (formData.newPassword.length < 6) {
+    error.value = '密码长度至少为6位'
+    return
+  }
+
+  if (formData.newPassword !== confirmPassword.value) {
+    error.value = '两次输入的密码不一致'
+    return
+  }
+
+  loading.value = true
+
   try {
-    const response = loginType.value === 'password'
-      ? await loginWithPassword(formData.email, formData.password)
-      : await loginWithCode(formData.email, formData.code)
+    const response = await resetPassword({
+      email: formData.email,
+      code: formData.code,
+      newPassword: formData.newPassword
+    })
 
-    const loginData = response.data
+    const resetData = response.data
 
-    // 登录接口已返回完整用户信息，直接保存
-    setAuth(loginData.access_token, loginData.user)
+    // 保存登录信息（自动登录）
+    setAuth(resetData.access_token, resetData.user)
 
-    success.value = '登录成功！即将跳转...'
+    success.value = '密码重置成功！正在登录...'
 
-    // 使用 navigateTo 进行客户端导航,不需要刷新页面
-    await new Promise(resolve => setTimeout(resolve, 500))
+    // 跳转到首页
+    await new Promise(resolve => setTimeout(resolve, 1000))
     await navigateTo('/')
   } catch (err) {
     error.value = handleApiError(err)
@@ -175,7 +183,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.login-card {
+.forgot-password-card {
   max-width: 460px;
 }
 

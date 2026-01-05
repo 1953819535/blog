@@ -6,7 +6,9 @@ import {
   LoginWithPwdDto,
   LoginWithCodeDto,
   SendRegisterVerificationDto,
-  SendLoginVerificationDto
+  SendLoginVerificationDto,
+  SendResetPasswordVerificationDto,
+  ResetPasswordDto
 } from './dto/index.js';
 import { CurrentUser, Public } from '../../common/index.js';
 import { LocalAuthGuard } from './guards/local-auth.guard.js';
@@ -51,5 +53,17 @@ export class AuthController {
   @Post('login-with-code')
   loginWithCode(@Body() loginDto: LoginWithCodeDto) {
     return this.authService.loginWithCode(loginDto.email, loginDto.code);
+  }
+
+  @ApiOperation({ summary: '发送重置密码验证码' })
+  @Post('send-reset-password-verification')
+  async sendResetPasswordVerification(@Body() dto: SendResetPasswordVerificationDto) {
+    return await this.authService.sendResetPasswordVerification(dto.email);
+  }
+
+  @ApiOperation({ summary: '重置密码' })
+  @Post('reset-password')
+  resetPassword(@Body() resetDto: ResetPasswordDto) {
+    return this.authService.resetPassword(resetDto.email, resetDto.code, resetDto.newPassword);
   }
 }

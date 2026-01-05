@@ -26,6 +26,7 @@ export class AuthService {
       userId: user.id,
       email: user.email,
       roles: user.roles.map(role => role.roleId),
+      tokenVersion: user.tokenVersion,
     };
     return {
       access_token: await this.jwtService.signAsync(payload),
@@ -43,13 +44,13 @@ export class AuthService {
   /**
    * 通用的验证码发送方法
    * @param email 邮箱地址
-   * @param type 验证码类型（register 或 login）
+   * @param type 验证码类型（register、login 或 reset-password）
    * @param rateLimitSeconds 限流时长（秒）
    * @param codeExpireSeconds 验证码有效期（秒）
    */
   private async sendVerificationCode(
     email: string,
-    type: 'register' | 'login',
+    type: 'register' | 'login' | 'reset-password',
     rateLimitSeconds = 60,
     codeExpireSeconds = 300,
   ) {
@@ -183,5 +184,65 @@ export class AuthService {
     await this.redisService.del(codeKey);
 
     return this.generateJwtToken(user);
+  }
+
+  /**
+   * 发送重置密码验证码
+   * @param email 邮箱地址
+   */
+  async sendResetPasswordVerification(email: string) {
+    // 检查用户是否存在
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      throw new HttpException('该邮箱未注册', HttpStatus.BAD_REQUEST);
+    }
+
+    // 检查用户是否已激活
+    if (!user.isActive) {
+      throw new HttpException('该账号已被禁用，请联系管理员', HttpStatus.FORBIDDEN);
+    }
+
+    return this.sendVerificationCode(email, 'reset-password');
+  }
+
+  /**
+   * 重置密码并自动登录
+   * @param email 邮箱地址
+   * @param code 验证码
+   * @param newPassword 新密码
+   */
+  async resetPassword(email: string, code: string, newPassword: string) {
+    // 先检查用户是否存在
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      throw new HttpException('该邮箱未注册', HttpStatus.BAD_REQUEST);
+    }
+
+    // 验证验证码
+    const codeKey = `email:verification:reset-password:${email}`;
+    const storedCode = await this.redisService.getString(codeKey);
+
+    if (!storedCode) {
+      throw new HttpException('验证码已过期或不存在', HttpStatus.BAD_REQUEST);
+    }
+
+    if (storedCode !== code) {
+      throw new HttpException('验证码错误', HttpStatus.BAD_REQUEST);
+    }
+
+    // 验证码正确后，删除该验证码（一次性使用）
+    await this.redisService.del(codeKey);
+
+    // 更新密码
+    await this.usersService.updatePassword(user.id, newPassword);
+
+    // 重新获取用户信息（包含完整的 profile 和 roles）
+    const updatedUser = await this.usersService.findByEmail(email);
+    if (!updatedUser) {
+      throw new HttpException('用户信息获取失败', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    // 生成 JWT token 并返回用户信息，实现自动登录
+    return this.generateJwtToken(updatedUser);
   }
 }

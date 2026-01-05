@@ -52,3 +52,25 @@ export function loginWithPassword(email: string, password: string) {
 export function loginWithCode(email: string, code: string) {
   return apiPost<LoginResponse>('/auth/login-with-code', { email, code })
 }
+
+/**
+ * 发送重置密码验证码
+ * @param email - 邮箱地址
+ */
+export function sendResetPasswordVerification(email: string) {
+  return apiPost<VerificationResponse>('/auth/send-reset-password-verification', { email })
+}
+
+/**
+ * 重置密码并自动登录
+ * @param data - 重置密码数据
+ */
+export interface ResetPasswordData {
+  email: string
+  code: string
+  newPassword: string
+}
+
+export function resetPassword(data: ResetPasswordData) {
+  return apiPost<LoginResponse>('/auth/reset-password', data)
+}
