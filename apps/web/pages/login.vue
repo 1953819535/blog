@@ -85,7 +85,7 @@
 <script setup lang="ts">
 import { reactive, ref, onUnmounted } from 'vue'
 import { handleApiError } from '~/utils/api'
-import { sendLoginVerification, loginWithPassword, loginWithCode, getUserProfile } from '~/api'
+import { sendLoginVerification, loginWithPassword, loginWithCode } from '~/api'
 
 const loginType = ref<'password' | 'code'>('password')
 
@@ -149,18 +149,8 @@ const handleLogin = async () => {
 
     const loginData = response.data
 
-    // 获取用户完整信息
-    const userResponse = await getUserProfile()
-    const userInfo = userResponse.data
-
-    // 使用 useAuth 统一管理状态
-    const userInfoToSave = {
-      id: userInfo.id,
-      email: userInfo.email,
-      nickname: userInfo.nickname,
-      avatar: userInfo.profile?.avatar || ''
-    }
-    setAuth(loginData.access_token, userInfoToSave)
+    // 登录接口已返回完整用户信息，直接保存
+    setAuth(loginData.access_token, loginData.user)
 
     success.value = '登录成功！即将跳转...'
 

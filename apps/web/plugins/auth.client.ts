@@ -6,7 +6,7 @@
 export default defineNuxtPlugin(() => {
   const authState = useState('auth', () => ({
     isLoggedIn: false,
-    userInfo: { id: '', email: '', nickname: '', avatar: '' }
+    userInfo: null
   }))
 
   // 同步读取 localStorage (仅在客户端)

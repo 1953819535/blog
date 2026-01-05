@@ -3,22 +3,17 @@
  * 提供全局的登录状态和用户信息管理
  */
 
-export interface UserInfo {
-  id: string
-  email: string
-  nickname?: string
-  avatar?: string
-}
+import type { UserInfo } from '~/types/api'
 
 export interface AuthState {
   isLoggedIn: boolean
-  userInfo: UserInfo
+  userInfo: UserInfo | null
 }
 
 export const useAuth = () => {
   const authState = useState<AuthState>('auth', () => ({
     isLoggedIn: false,
-    userInfo: { id: '', email: '' }
+    userInfo: null
   }))
 
   /**
@@ -45,7 +40,7 @@ export const useAuth = () => {
     }
     authState.value = {
       isLoggedIn: false,
-      userInfo: { id: '', email: '' }
+      userInfo: null
     }
   }
 

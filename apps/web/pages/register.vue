@@ -91,7 +91,9 @@
 <script setup lang="ts">
 import { reactive, ref, onUnmounted } from 'vue'
 import { handleApiError } from '~/utils/api'
-import { sendRegisterVerification, register, getUserProfile } from '~/api'
+import { sendRegisterVerification, register } from '~/api'
+
+const { setAuth } = useAuth()
 
 const formData = reactive({
   nickname: '',
@@ -154,27 +156,16 @@ const handleRegister = async () => {
 
   try {
     const response = await register(formData)
+    const registerData = response.data
 
-    // 先保存 token
-    localStorage.setItem('token', response.data.access_token)
-
-    // 获取用户完整信息
-    const userResponse = await getUserProfile()
-    const userInfo = userResponse.data
-
-    // 保存用户信息
-    localStorage.setItem('userInfo', JSON.stringify({
-      id: userInfo.id,
-      email: userInfo.email,
-      nickname: userInfo.nickname,
-      avatar: userInfo.profile?.avatar || ''
-    }))
+    // 注册接口已返回完整用户信息，直接保存
+    setAuth(registerData.access_token, registerData.user)
 
     success.value = '注册成功！即将跳转...'
 
-    // 确保数据已保存后再跳转
+    // 使用 navigateTo 进行客户端导航
     await new Promise(resolve => setTimeout(resolve, 500))
-    window.location.href = '/'
+    await navigateTo('/')
   } catch (err) {
     error.value = handleApiError(err)
     // 如果失败,清理可能不完整的数据

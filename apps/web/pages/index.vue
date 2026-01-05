@@ -30,13 +30,13 @@
               <img
                 v-if="avatarUrl"
                 :src="avatarUrl"
-                :alt="userInfo.nickname || userInfo.email"
+                :alt="userInfo?.nickname || userInfo?.email"
               />
               <span v-else>{{
-                (userInfo.nickname || userInfo.email)?.[0]?.toUpperCase() || 'U'
+                (userInfo?.nickname || userInfo?.email)?.[0]?.toUpperCase() || 'U'
               }}</span>
             </div>
-            <span class="user-email">{{ userInfo.email }}</span>
+            <span class="user-email">{{ userInfo?.email }}</span>
             <button @click="handleLogout" class="btn-logout">退出</button>
           </div>
         </div>
@@ -81,7 +81,7 @@ import { getAvatarUrl } from '~/utils/image'
 const { isLoggedIn, userInfo, clearAuth } = useAuth()
 
 // 计算完整的头像 URL
-const avatarUrl = computed(() => getAvatarUrl(userInfo.value.avatar))
+const avatarUrl = computed(() => getAvatarUrl(userInfo.value?.profile?.avatar))
 
 const handleLogout = () => {
   if (!confirm('确定要退出登录吗?')) {

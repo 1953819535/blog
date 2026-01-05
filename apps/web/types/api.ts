@@ -58,11 +58,7 @@ export interface UserInfo {
  */
 export interface LoginResponse {
   access_token: string
-  payload: {
-    userId: string
-    email: string
-    roles: string[]
-  }
+  user: UserInfo
 }
 
 /**
