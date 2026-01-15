@@ -3,48 +3,27 @@
     <div class="page-header">
       <div class="brand">
         <svg class="brand-icon" viewBox="0 0 40 40" fill="none">
-          <rect
-            width="40"
-            height="40"
-            rx="6"
-            fill="currentColor"
-            opacity="0.9"
-          />
-          <path
-            d="M12 13h16v1.5H12v-1.5zm0 6h12v1.5H12V19zm0 6h8v1.5h-8V25z"
-            fill="white"
-          />
+          <rect width="40" height="40" rx="6" fill="currentColor" opacity="0.9" />
+          <path d="M12 13h16v1.5H12v-1.5zm0 6h12v1.5H12V19zm0 6h8v1.5h-8V25z" fill="white" />
         </svg>
-        <span class="brand-name">Blog</span>
+        <NuxtLink to="/" class="brand-name">Blog</NuxtLink>
       </div>
       <ClientOnly>
         <div class="header-actions">
-          <!-- 未登录状态 -->
           <div v-if="!isLoggedIn" class="auth-buttons">
-            <NuxtLink to="/login" class="btn btn-primary">登录</NuxtLink>
-            <NuxtLink to="/register" class="btn btn-outline">注册</NuxtLink>
+            <NuxtLink to="/login" class="btn-link">登录</NuxtLink>
+            <span class="divider">|</span>
+            <NuxtLink to="/register" class="btn-link">注册</NuxtLink>
           </div>
-          <!-- 已登录状态 -->
           <div v-else class="user-menu">
-            <div class="user-avatar">
-              <img
-                v-if="avatarUrl"
-                :src="avatarUrl"
-                :alt="userInfo?.nickname || userInfo?.email"
-              />
-              <span v-else>{{
-                (userInfo?.nickname || userInfo?.email)?.[0]?.toUpperCase() || 'U'
-              }}</span>
-            </div>
             <span class="user-email">{{ userInfo?.email }}</span>
-            <button @click="handleLogout" class="btn-logout">退出</button>
+            <span class="divider">|</span>
+            <button @click="handleLogout" class="btn-link">退出</button>
           </div>
         </div>
         <template #fallback>
-          <!-- 骨架屏占位 - 避免布局跳动 -->
           <div class="header-actions">
             <div class="auth-buttons skeleton">
-              <div class="skeleton-btn"></div>
               <div class="skeleton-btn"></div>
             </div>
           </div>
@@ -53,35 +32,69 @@
     </div>
 
     <div class="page-body">
-      <div class="guest-card card">
-        <div class="hero-icon">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-          </svg>
+      <div class="container">
+        <!-- 加载状态 -->
+        <div v-if="pending" class="loading">
+          <p>加载中...</p>
         </div>
-        <div class="hero-section">
-          <h1 class="title-1 title-center">记录想法<br />分享观点</h1>
-          <p class="text text-base text-center mt-sm">简洁优雅的博客系统</p>
+
+        <!-- 错误状态 -->
+        <div v-else-if="error" class="error">
+          <p>加载失败: {{ error.message }}</p>
+        </div>
+
+        <!-- 文章列表 -->
+        <main v-else-if="posts && posts.length > 0" class="main">
+          <h2 class="section-title">{{ posts.length }} 篇文章</h2>
+
+          <div class="posts-list">
+            <NuxtLink
+              v-for="post in posts"
+              :key="post.id"
+              :to="`/posts/${post.id}`"
+              class="post-item"
+            >
+              <span class="post-date">{{ formatDate(post.publishedAt || post.createdAt) }}</span>
+              <span class="post-title">{{ post.title }}</span>
+            </NuxtLink>
+          </div>
+        </main>
+
+        <!-- 空状态 -->
+        <div v-else class="empty">
+          <p>暂无文章</p>
         </div>
       </div>
     </div>
+
+    <footer class="page-footer">
+      <p>&copy; {{ new Date().getFullYear() }} Blog. All rights reserved.</p>
+    </footer>
   </div>
 </template>
 
 <script setup lang="ts">
-import { getAvatarUrl } from '~/utils/image'
+import { getPosts, type PostWithRelations } from '~/api'
 
-// 使用全局认证状态 - 由 plugin 在应用初始化时同步加载
+// 使用全局认证状态
 const { isLoggedIn, userInfo, clearAuth } = useAuth()
 
-// 计算完整的头像 URL
-const avatarUrl = computed(() => getAvatarUrl(userInfo.value?.profile?.avatar))
+// 获取文章列表
+const { data: posts, pending, error } = await useLazyAsyncData<PostWithRelations[]>('posts', async () => {
+  const response = await getPosts()
+  return response.data
+})
+
+// 格式化日期
+function formatDate(date: Date | string | null) {
+  if (!date) return ''
+  const d = typeof date === 'string' ? new Date(date) : date
+  return d.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).replace(/\//g, '-')
+}
 
 const handleLogout = () => {
   if (!confirm('确定要退出登录吗?')) {
@@ -94,7 +107,7 @@ const handleLogout = () => {
 <style scoped>
 .index-page {
   min-height: 100vh;
-  background: var(--color-bg);
+  background: #fff;
   display: flex;
   flex-direction: column;
 }
@@ -103,180 +116,165 @@ const handleLogout = () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 72px;
-  padding: var(--space-lg) var(--space-xl);
-  background: rgba(255, 252, 246, 0.8);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--color-border-light);
+  padding: 20px 0;
+  border-bottom: 1px solid #eee;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: 8px;
 }
 
 .brand-icon {
-  width: 28px;
-  height: 28px;
-  color: var(--color-primary);
+  width: 24px;
+  height: 24px;
+  color: var(--color-primary, #795548);
 }
 
 .brand-name {
-  font-size: var(--font-xl);
+  font-size: 18px;
   font-weight: 500;
-  color: var(--color-text);
-  letter-spacing: -0.3px;
+  color: #333;
+  text-decoration: none;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
+  font-size: 14px;
 }
 
+.auth-buttons,
 .user-menu {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
+  gap: 12px;
 }
 
-.auth-buttons {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
+.btn-link {
+  color: #333;
+  text-decoration: none;
+  padding: 4px 8px;
+  transition: color 0.2s;
 }
 
-.user-avatar {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--font-base);
-  font-weight: 500;
-  color: white;
-  background: var(--color-primary);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  flex-shrink: 0;
+.btn-link:hover {
+  color: var(--color-primary, #795548);
 }
 
-.user-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.divider {
+  color: #ddd;
 }
 
 .user-email {
-  font-size: var(--font-sm);
-  color: var(--color-text-secondary);
-}
-
-.btn-logout {
-  padding: 6px var(--space-md);
-  font-size: var(--font-sm);
-  color: var(--color-text-secondary);
-  background: transparent;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.btn-logout:hover {
-  color: var(--color-text);
-  border-color: var(--color-primary);
-  background: var(--color-bg-hover);
+  color: #666;
+  font-size: 14px;
 }
 
 .page-body {
   flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-xl);
+  padding: 40px 0;
 }
 
-.guest-card {
-  width: 100%;
-  max-width: 400px;
+.container {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.loading,
+.error,
+.empty {
   text-align: center;
+  padding: 60px 20px;
+  color: #999;
 }
 
-.hero-icon {
-  width: 56px;
-  height: 56px;
-  margin: 0 auto var(--space-lg);
+.main {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(
-    135deg,
-    rgba(121, 85, 72, 0.1),
-    rgba(93, 64, 55, 0.08)
-  );
-  border-radius: var(--radius-xl);
-  color: var(--color-primary);
+  flex-direction: column;
 }
 
-.hero-icon svg {
-  width: 28px;
-  height: 28px;
+.section-title {
+  font-size: 14px;
+  color: #999;
+  font-weight: normal;
+  margin: 0 0 24px 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee;
 }
 
-.hero-section {
-  margin-bottom: var(--space-xl);
+.posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.post-item {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  text-decoration: none;
+  padding: 4px 0;
+}
+
+.post-date {
+  font-size: 13px;
+  color: #999;
+  white-space: nowrap;
+  font-family: monospace;
+}
+
+.post-title {
+  font-size: 18px;
+  color: #333;
+  line-height: 1.5;
+}
+
+.post-item:hover .post-title {
+  color: var(--color-primary, #795548);
+  text-decoration: underline;
+}
+
+.page-footer {
+  padding: 20px 0;
+  text-align: center;
+  border-top: 1px solid #eee;
+  color: #999;
+  font-size: 14px;
 }
 
 @media (max-width: 640px) {
+  .container {
+    padding: 0 16px;
+  }
+
   .page-header {
-    padding: var(--space-md) var(--space-lg);
+    padding: 16px 0;
   }
 
   .page-body {
-    padding: var(--space-md);
+    padding: 24px 0;
   }
 
-  .guest-card {
-    max-width: 100%;
-  }
-
-  .user-email {
-    display: none;
-  }
-
-  .title-1 {
-    font-size: var(--font-2xl);
-  }
-
-  .hero-icon {
-    width: 48px;
-    height: 48px;
-  }
-
-  .hero-icon svg {
-    width: 24px;
-    height: 24px;
+  .post-title {
+    font-size: 16px;
   }
 }
 
-/* 骨架屏占位样式 */
+/* 骨架屏 */
 .skeleton {
   pointer-events: none;
 }
 
 .skeleton-btn {
-  height: 34px;
-  width: 64px;
-  background: linear-gradient(
-    90deg,
-    rgba(0, 0, 0, 0.06) 25%,
-    rgba(0, 0, 0, 0.08) 50%,
-    rgba(0, 0, 0, 0.06) 75%
-  );
+  height: 28px;
+  width: 60px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s ease-in-out infinite;
-  border-radius: var(--radius-md);
+  border-radius: 4px;
 }
 
 @keyframes skeleton-loading {

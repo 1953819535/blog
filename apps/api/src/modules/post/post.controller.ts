@@ -4,7 +4,7 @@ import { CreatePostDto } from './dto/create-post.dto.js';
 import { UpdatePostDto } from './dto/update-post.dto.js';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { Post } from '@my/prisma';
-import { CurrentUser } from '../../common/index.js'; // 假设你的装饰器位置
+import { CurrentUser, Public } from '../../common/index.js'; // 假设你的装饰器位置
 import type { SafeUser } from '../users/types/index.js';
 
 @ApiTags('文章')
@@ -36,6 +36,7 @@ export class PostController {
     description: '是否只显示已发布文章 (true=仅已发布, false=所有)',
     type: Boolean
   })
+  @Public()
   @Get()
   findAll(
     // 默认只查已发布的 (public view)，后台调用时传 false
@@ -48,6 +49,7 @@ export class PostController {
    * 获取文章详情
    */
   @ApiOperation({ summary: '根据ID获取文章详情' })
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string): Promise<Post> {
     return this.postService.findOne(id);
