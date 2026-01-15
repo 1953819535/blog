@@ -7,7 +7,19 @@ export function setupSwagger(app: INestApplication, port: number) {
     .setTitle('Blog API')
     .setDescription('A simple blog API')
     .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'Authorization',
+        in: 'header',
+      },
+      'JWT-auth',
+    )
+    .addSecurityRequirements('JWT-auth')
     .build();
+
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs-api', app, documentFactory, {
     jsonDocumentUrl: 'swagger/json',
@@ -19,9 +31,11 @@ export function setupSwagger(app: INestApplication, port: number) {
       url: '/swagger/json',
       theme: 'default',
       layout: 'modern',
+      authentication: {
+        preferredSecurityScheme: 'JWT-auth',
+      },
     }),
   );
 
-  // 这里我们改变文档地址，使用 scalar 来展示 API 文档
   console.log(`docs start on http://localhost:${port}/reference`);
 }

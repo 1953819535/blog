@@ -12,6 +12,9 @@ import { R2Module } from './modules/r2/r2.module.js';
 import { CryptoModule } from './modules/crypto/crypto.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard.js';
+import { CategoryModule } from './modules/category/category.module.js'
+import { TagModule } from './modules/tag/tag.module.js'
+import { PostModule } from './modules/post/post.module.js'
 
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
@@ -34,6 +37,9 @@ import { AppService } from './app.service.js';
     EmailModule,
     R2Module,
     AuthModule,
+    CategoryModule,
+    TagModule,
+    PostModule,
   ],
   controllers: [AppController],
   providers: [
@@ -57,6 +63,7 @@ import { AppService } from './app.service.js';
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
     },
+    // 全局 JWT 守卫 - 验证 JWT
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
