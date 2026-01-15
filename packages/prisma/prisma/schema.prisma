@@ -29,10 +29,10 @@ model User {
 
   // 关联
   profile Profile? // 1:1 关系
-  roles   UserRole[] // 1:N 关系（指向中间表）
+  roles   UserRole[] // 角色 1:N 关系（指向中间表）
+  posts   Post[] // 文章 1:N 关系（指向中间表）
 
   // 未来扩展
-  // posts  Post[]
   // comments Comment[]
 
   @@map("users")
@@ -78,4 +78,104 @@ model UserRole {
 
   @@id([userId, roleId]) // 复合主键
   @@map("user_roles")
+}
+
+// --------------------------------------------------------
+// 博客核心业务模块 (Post, Category, Tag)
+// --------------------------------------------------------
+
+/**
+ * 文章表 (Post)
+ * 核心内容存放处。
+ * 关于图片处理：
+ * `content` 字段存储 Markdown 文本。
+ * 当你在 Service 层执行 "移动图片" 逻辑后，
+ * 存入这里的文本中的图片链接应该是: https://cdn.yours.com/posts/uuid/image.png (永久路径)
+ */
+model Post {
+  id    String @id @default(uuid())
+  title String // 文章标题
+
+  // URL 友好标识
+  // 作用：前端路由使用 /post/nestjs-r2-upload 而不是 /post/123-456
+  // 这是一个 SEO 关键字段，必须唯一且加索引
+  slug String @unique
+
+  // 文章摘要
+  // 用于在文章列表页展示，避免加载全文，提升列表页查询速度
+  excerpt String? @db.Text
+
+  // 文章正文
+  // 使用 @db.Text 以支持长文本（PostgreSQL Text 类型无长度限制）
+  // 这里存的是 Markdown 源码
+  content String @db.Text
+
+  // 封面图 URL (可选)
+  coverImage String? @map("cover_image")
+
+  // 状态控制
+  published   Boolean   @default(false) // false=草稿, true=已发布
+  publishedAt DateTime? @map("published_at") // 实际发布时间，用于排序
+
+  // 统计数据
+  // 简单计数，如果并发极高(每秒几百次写入)建议以后拆分出去，个人博客足够用
+  viewCount Int @default(0) @map("view_count")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // === 关联 ===
+
+  // 作者
+  authorId String @map("author_id")
+  author   User   @relation(fields: [authorId], references: [id])
+
+  // 分类 (1:N) - 一篇文章属于一个主分类 (类似文件夹)
+  // 这里的 onDelete: SetNull 表示如果分类被删除，文章不会被删，只是变成未分类
+  categoryId String?   @map("category_id")
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  // 标签 (N:M) - 一篇文章可以有多个标签 (类似贴纸)
+  // Prisma 会自动维护隐式中间表 `_PostToTag`
+  tags Tag[]
+
+  // 索引优化
+  @@index([slug]) // 加速详情页查询
+  @@index([published, publishedAt]) // 加速列表页查询 (只查已发布的)
+  @@index([authorId]) // 加速查询某人的文章
+  @@map("posts")
+}
+
+/**
+ * 分类表 (Category)
+ * 用于构建网站的导航结构，如：后端、前端、随笔
+ */
+model Category {
+  id          String  @id @default(uuid())
+  name        String  @unique // 分类名必须唯一，如 "Backend"
+  slug        String  @unique // URL 标识，如 "backend"
+  description String? // 分类描述，用于 SEO meta description
+
+  posts Post[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("categories")
+}
+
+/**
+ * 标签表 (Tag)
+ * 用于描述内容的具体属性，如：NestJS, Prisma, Docker
+ * 相比分类更扁平、更灵活
+ */
+model Tag {
+  id   String @id @default(uuid())
+  name String @unique // 标签名
+  slug String @unique // URL 标识
+
+  posts Post[]
+
+  // 不需要 createdAt/updatedAt，通常标签只增不改
+  @@map("tags")
 }
