@@ -238,10 +238,10 @@ async function main() {
   // 5. 创建示例文章
   console.log('📝 创建示例文章...');
   const techCategory = await prisma.category.findUnique({ where: { slug: 'tech' } });
-  const jsTag = await prisma.tag.findUnique({ where: { slug: 'javascript' } });
-  const nestjsTag = await prisma.tag.findUnique({ where: { slug: 'nestjs' } });
+  const jsTag = await prisma.tag.findUnique({ where: { slug: 'js' } });
+  const nestTag = await prisma.tag.findUnique({ where: { slug: 'nest' } });
 
-  if (techCategory && jsTag && nestjsTag) {
+  if (techCategory && jsTag && nestTag) {
     await prisma.post.upsert({
       where: { slug: 'welcome-to-my-blog' },
       update: {},
@@ -282,7 +282,7 @@ async function main() {
         tags: {
           connect: [
             { id: jsTag.id },
-            { id: nestjsTag.id },
+            { id: nestTag.id },
           ],
         },
       },
