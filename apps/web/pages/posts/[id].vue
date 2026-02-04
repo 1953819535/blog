@@ -1,6 +1,15 @@
 <script setup lang="ts">
+definePageMeta({
+  layout: 'default'
+})
+
 import { marked } from 'marked'
 import { getPostById, type PostWithRelations } from '~/api'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Separator } from '@/components/ui/separator'
+import { Badge } from '@/components/ui/badge'
 
 // 配置 marked
 marked.use({
@@ -45,254 +54,152 @@ function formatDate(date: Date | string | null) {
 </script>
 
 <template>
-  <div class="post-page">
+  <div>
     <!-- 加载状态 -->
-    <div v-if="pending" class="loading">
-      <p>加载中...</p>
+    <div v-if="pending" class="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <div class="space-y-6">
+        <Skeleton class="h-8 w-24" />
+        <Separator />
+        <div class="space-y-4">
+          <Skeleton class="h-12 w-3/4" />
+          <Skeleton class="h-4 w-32" />
+          <div class="space-y-2 mt-8">
+            <Skeleton class="h-4 w-full" />
+            <Skeleton class="h-4 w-full" />
+            <Skeleton class="h-4 w-2/3" />
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 错误状态 -->
-    <div v-else-if="error" class="error">
-      <p>加载失败: {{ error.message }}</p>
-      <NuxtLink to="/" class="back-link">返回首页</NuxtLink>
+    <div v-else-if="error" class="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <Alert variant="destructive" class="mb-6">
+        <AlertDescription>加载失败: {{ error.message }}</AlertDescription>
+      </Alert>
+      <Button variant="ghost" as-child>
+        <NuxtLink to="/">← 返回首页</NuxtLink>
+      </Button>
     </div>
 
     <!-- 文章内容 -->
-    <article v-else-if="post" class="post-article">
-      <!-- 头部导航 -->
-      <header class="post-header">
-        <NuxtLink to="/" class="back-link">← 返回首页</NuxtLink>
-      </header>
-
+    <article v-else-if="post" class="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
       <!-- 文章主体 -->
-      <div class="post-content">
-        <h1 class="post-title">{{ post.title }}</h1>
+      <div class="space-y-6">
+        <h1 class="text-3xl sm:text-4xl font-bold text-foreground leading-tight">
+          {{ post.title }}
+        </h1>
 
         <!-- 元信息 -->
-        <div class="post-meta">
-          <span class="post-date">{{ formatDate(post.publishedAt || post.createdAt) }}</span>
+        <div class="flex items-center gap-3 text-sm text-muted-foreground">
+          <Badge variant="secondary" class="font-mono">
+            {{ formatDate(post.publishedAt || post.createdAt) }}
+          </Badge>
         </div>
 
+        <Separator />
+
         <!-- Markdown 内容 -->
-        <div class="markdown-body" v-html="renderedContent"></div>
+        <div class="prose prose-neutral dark:prose-invert max-w-none" v-html="renderedContent"></div>
       </div>
 
       <!-- 底部 -->
-      <footer class="post-footer">
-        <NuxtLink to="/" class="back-link">← 返回首页</NuxtLink>
+      <footer class="mt-16 pt-8 border-t">
+        <Button variant="ghost" as-child size="sm">
+          <NuxtLink to="/">← 返回首页</NuxtLink>
+        </Button>
       </footer>
     </article>
 
     <!-- 未找到 -->
-    <div v-else class="not-found">
-      <p>文章不存在</p>
-      <NuxtLink to="/" class="back-link">返回首页</NuxtLink>
+    <div v-else class="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 text-center">
+      <p class="text-muted-foreground mb-6">文章不存在</p>
+      <Button variant="ghost" as-child>
+        <NuxtLink to="/">← 返回首页</NuxtLink>
+      </Button>
     </div>
   </div>
 </template>
 
 <style scoped>
-.post-page {
-  min-height: 100vh;
-  background: #fff;
+@reference "~/assets/styles/tailwind.css";
+
+/* Markdown 样式 - 使用 Tailwind Typography 的 prose 类 */
+.prose :deep(h1) {
+  @apply text-3xl font-bold mt-10 mb-5 pb-3 border-b;
 }
 
-.loading,
-.error,
-.not-found {
-  text-align: center;
-  padding: 80px 20px;
-  color: #999;
+.prose :deep(h2) {
+  @apply text-2xl font-bold mt-8 mb-4 pb-2 border-b;
 }
 
-.back-link {
-  color: #333;
-  text-decoration: none;
-  font-size: 14px;
+.prose :deep(h3) {
+  @apply text-xl font-semibold mt-6 mb-3;
 }
 
-.back-link:hover {
-  color: #666;
-  text-decoration: underline;
+.prose :deep(h4) {
+  @apply text-lg font-semibold mt-5 mb-2;
 }
 
-.post-article {
-  max-width: 680px;
-  margin: 0 auto;
-  padding: 40px 20px;
+.prose :deep(p) {
+  @apply mb-4 leading-7;
 }
 
-.post-header {
-  margin-bottom: 40px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #eee;
+.prose :deep(a) {
+  @apply text-primary hover:underline;
 }
 
-.post-content {
-  display: flex;
-  flex-direction: column;
+.prose :deep(code) {
+  @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono;
 }
 
-.post-title {
-  font-size: 32px;
-  font-weight: 600;
-  color: #333;
-  margin: 0 0 16px 0;
-  line-height: 1.4;
+.prose :deep(pre) {
+  @apply bg-muted p-4 rounded-lg overflow-x-auto my-4;
 }
 
-.post-meta {
-  font-size: 14px;
-  color: #999;
-  margin-bottom: 40px;
+.prose :deep(pre code) {
+  @apply bg-transparent p-0;
 }
 
-.post-footer {
-  margin-top: 60px;
-  padding-top: 20px;
-  border-top: 1px solid #eee;
+.prose :deep(blockquote) {
+  @apply border-l-4 border-border pl-4 my-4 text-muted-foreground italic;
 }
 
-/* Markdown 样式 */
-.markdown-body {
-  color: #333;
-  line-height: 1.8;
-  font-size: 16px;
+.prose :deep(ul),
+.prose :deep(ol) {
+  @apply pl-6 my-4 space-y-2;
 }
 
-.markdown-body :deep(h1) {
-  font-size: 28px;
-  font-weight: 600;
-  margin: 40px 0 20px 0;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #eee;
+.prose :deep(li) {
+  @apply leading-7;
 }
 
-.markdown-body :deep(h2) {
-  font-size: 24px;
-  font-weight: 600;
-  margin: 32px 0 16px 0;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #eee;
+.prose :deep(img) {
+  @apply max-w-full h-auto rounded-lg my-4;
 }
 
-.markdown-body :deep(h3) {
-  font-size: 20px;
-  font-weight: 600;
-  margin: 24px 0 12px 0;
+.prose :deep(table) {
+  @apply w-full border-collapse my-4;
 }
 
-.markdown-body :deep(h4) {
-  font-size: 18px;
-  font-weight: 600;
-  margin: 20px 0 10px 0;
+.prose :deep(th),
+.prose :deep(td) {
+  @apply border border-border px-3 py-2 text-left;
 }
 
-.markdown-body :deep(p) {
-  margin: 0 0 16px 0;
+.prose :deep(th) {
+  @apply bg-muted font-semibold;
 }
 
-.markdown-body :deep(a) {
-  color: #1e6bb8;
-  text-decoration: none;
+.prose :deep(hr) {
+  @apply border-t border-border my-8;
 }
 
-.markdown-body :deep(a:hover) {
-  text-decoration: underline;
+.prose :deep(strong) {
+  @apply font-semibold;
 }
 
-.markdown-body :deep(code) {
-  background: #f5f5f5;
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 14px;
-}
-
-.markdown-body :deep(pre) {
-  background: #f5f5f5;
-  padding: 16px;
-  border-radius: 4px;
-  overflow-x: auto;
-  margin: 16px 0;
-}
-
-.markdown-body :deep(pre code) {
-  background: none;
-  padding: 0;
-}
-
-.markdown-body :deep(blockquote) {
-  border-left: 4px solid #ddd;
-  padding-left: 16px;
-  margin: 16px 0;
-  color: #666;
-}
-
-.markdown-body :deep(ul),
-.markdown-body :deep(ol) {
-  padding-left: 24px;
-  margin: 16px 0;
-}
-
-.markdown-body :deep(li) {
-  margin: 8px 0;
-}
-
-.markdown-body :deep(img) {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 16px 0;
-}
-
-.markdown-body :deep(table) {
-  border-collapse: collapse;
-  width: 100%;
-  margin: 16px 0;
-}
-
-.markdown-body :deep(th),
-.markdown-body :deep(td) {
-  border: 1px solid #ddd;
-  padding: 8px 12px;
-  text-align: left;
-}
-
-.markdown-body :deep(th) {
-  background: #f5f5f5;
-  font-weight: 600;
-}
-
-.markdown-body :deep(hr) {
-  border: none;
-  border-top: 1px solid #eee;
-  margin: 32px 0;
-}
-
-@media (max-width: 640px) {
-  .post-article {
-    padding: 24px 16px;
-  }
-
-  .post-title {
-    font-size: 24px;
-  }
-
-  .markdown-body {
-    font-size: 15px;
-  }
-
-  .markdown-body :deep(h1) {
-    font-size: 24px;
-  }
-
-  .markdown-body :deep(h2) {
-    font-size: 20px;
-  }
-
-  .markdown-body :deep(h3) {
-    font-size: 18px;
-  }
+.prose :deep(em) {
+  @apply italic;
 }
 </style>

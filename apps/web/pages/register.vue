@@ -1,97 +1,113 @@
 <template>
-  <div class="register-page page-container">
-    <div class="register-card card">
-      <div class="card-header">
-        <h1 class="title-2 title-center">注册</h1>
-        <p class="text text-center text-base mt-sm">创建您的博客账号</p>
-      </div>
+  <Card class="w-full max-w-md">
+      <CardHeader class="text-center">
+        <CardTitle class="text-2xl">注册</CardTitle>
+        <CardDescription>创建您的博客账号</CardDescription>
+      </CardHeader>
 
-      <form @submit.prevent="handleRegister" class="form">
-        <div class="form-group">
-          <label class="form-label">用户名</label>
-          <input
-            v-model="formData.nickname"
-            type="text"
-            class="input"
-            placeholder="请输入用户名（可选）"
-          />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label form-label-required">邮箱</label>
-          <input
-            v-model="formData.email"
-            type="email"
-            class="input"
-            placeholder="请输入邮箱"
-            required
-          />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label form-label-required">密码</label>
-          <input
-            v-model="formData.password"
-            type="password"
-            class="input"
-            placeholder="请输入密码"
-            required
-          />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label form-label-required">确认密码</label>
-          <input
-            v-model="formData.confirmPassword"
-            type="password"
-            class="input"
-            placeholder="请再次输入密码"
-            required
-          />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label form-label-required">验证码</label>
-          <div class="input-group">
-            <input
-              v-model="formData.code"
+      <CardContent>
+        <form @submit.prevent="handleRegister" class="space-y-4">
+          <div class="space-y-2">
+            <Label for="nickname">用户名</Label>
+            <Input
+              id="nickname"
+              v-model="formData.nickname"
               type="text"
-              class="input"
-              placeholder="请输入6位验证码"
-              maxlength="6"
+              placeholder="请输入用户名（可选）"
+            />
+          </div>
+
+          <div class="space-y-2">
+            <Label for="email">邮箱 <span class="text-destructive">*</span></Label>
+            <Input
+              id="email"
+              v-model="formData.email"
+              type="email"
+              placeholder="请输入邮箱"
               required
             />
-            <button
-              type="button"
-              class="btn btn-outline"
-              @click="handleSendCode"
-              :disabled="codeSending || countdown > 0"
-            >
-              {{ countdown > 0 ? `${countdown}s` : codeSending ? '发送中' : '获取验证码' }}
-            </button>
           </div>
-        </div>
 
-        <button type="submit" class="btn btn-primary btn-block btn-lg" :disabled="loading">
-          {{ loading ? '注册中...' : '注册' }}
-        </button>
-      </form>
+          <div class="space-y-2">
+            <Label for="password">密码 <span class="text-destructive">*</span></Label>
+            <Input
+              id="password"
+              v-model="formData.password"
+              type="password"
+              placeholder="请输入密码"
+              required
+            />
+          </div>
 
-      <p class="text text-center text-base mt-sm">
-        已有账号？
-        <NuxtLink to="/login" class="link">立即登录</NuxtLink>
-      </p>
+          <div class="space-y-2">
+            <Label for="confirmPassword">确认密码 <span class="text-destructive">*</span></Label>
+            <Input
+              id="confirmPassword"
+              v-model="formData.confirmPassword"
+              type="password"
+              placeholder="请再次输入密码"
+              required
+            />
+          </div>
 
-      <div v-if="error" class="message message-error mt-sm">{{ error }}</div>
-      <div v-if="success" class="message message-success mt-sm">{{ success }}</div>
-    </div>
-  </div>
+          <div class="space-y-2">
+            <Label for="code">验证码 <span class="text-destructive">*</span></Label>
+            <div class="flex gap-2">
+              <Input
+                id="code"
+                v-model="formData.code"
+                type="text"
+                placeholder="请输入6位验证码"
+                maxlength="6"
+                class="flex-1"
+                required
+              />
+              <Button
+                type="button"
+                variant="outline"
+                @click="handleSendCode"
+                :disabled="codeSending || countdown > 0"
+                class="shrink-0"
+              >
+                {{ countdown > 0 ? `${countdown}s` : codeSending ? '发送中' : '获取验证码' }}
+              </Button>
+            </div>
+          </div>
+
+          <Button type="submit" class="w-full" :disabled="loading">
+            {{ loading ? '注册中...' : '注册' }}
+          </Button>
+        </form>
+
+        <p class="text-center text-sm text-muted-foreground mt-6">
+          已有账号？
+          <NuxtLink to="/login" class="text-primary hover:underline">立即登录</NuxtLink>
+        </p>
+
+        <Alert v-if="error" variant="destructive" class="mt-4">
+          <AlertDescription>{{ error }}</AlertDescription>
+        </Alert>
+
+        <Alert v-if="success" class="mt-4">
+          <AlertDescription>{{ success }}</AlertDescription>
+        </Alert>
+      </CardContent>
+    </Card>
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  layout: 'centered'
+})
+
 import { reactive, ref, onUnmounted } from 'vue'
 import { handleApiError } from '~/utils/api'
 import { sendRegisterVerification, register } from '~/api'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 const { setAuth } = useAuth()
 
@@ -182,14 +198,3 @@ onUnmounted(() => {
   }
 })
 </script>
-
-<style scoped>
-.register-card {
-  max-width: 460px;
-}
-
-.card-header {
-  margin-bottom: var(--space-md);
-  text-align: center;
-}
-</style>

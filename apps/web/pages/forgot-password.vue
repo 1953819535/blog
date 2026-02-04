@@ -1,89 +1,105 @@
 <template>
-  <div class="forgot-password-page page-container">
-    <div class="forgot-password-card card">
-      <div class="card-header">
-        <h1 class="title-2 title-center">重置密码</h1>
-        <p class="text text-center text-base mt-sm">通过邮箱验证码重置您的密码</p>
-      </div>
+  <Card class="w-full max-w-md">
+      <CardHeader class="text-center">
+        <CardTitle class="text-2xl">重置密码</CardTitle>
+        <CardDescription>通过邮箱验证码重置您的密码</CardDescription>
+      </CardHeader>
 
-      <form @submit.prevent="handleResetPassword" class="form">
-        <div class="form-group">
-          <label class="form-label form-label-required">邮箱</label>
-          <input
-            v-model="formData.email"
-            type="email"
-            class="input"
-            placeholder="请输入邮箱"
-            required
-          />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label form-label-required">验证码</label>
-          <div class="input-group">
-            <input
-              v-model="formData.code"
-              type="text"
-              class="input"
-              placeholder="请输入6位验证码"
-              maxlength="6"
+      <CardContent>
+        <form @submit.prevent="handleResetPassword" class="space-y-4">
+          <div class="space-y-2">
+            <Label for="email">邮箱 <span class="text-destructive">*</span></Label>
+            <Input
+              id="email"
+              v-model="formData.email"
+              type="email"
+              placeholder="请输入邮箱"
               required
             />
-            <button
-              type="button"
-              class="btn btn-outline"
-              @click="handleSendCode"
-              :disabled="codeSending || countdown > 0"
-            >
-              {{ countdown > 0 ? `${countdown}s` : codeSending ? '发送中' : '获取验证码' }}
-            </button>
           </div>
-        </div>
 
-        <div class="form-group">
-          <label class="form-label form-label-required">新密码</label>
-          <input
-            v-model="formData.newPassword"
-            type="password"
-            class="input"
-            placeholder="请输入新密码（至少6位）"
-            minlength="6"
-            required
-          />
-        </div>
+          <div class="space-y-2">
+            <Label for="code">验证码 <span class="text-destructive">*</span></Label>
+            <div class="flex gap-2">
+              <Input
+                id="code"
+                v-model="formData.code"
+                type="text"
+                placeholder="请输入6位验证码"
+                maxlength="6"
+                class="flex-1"
+                required
+              />
+              <Button
+                type="button"
+                variant="outline"
+                @click="handleSendCode"
+                :disabled="codeSending || countdown > 0"
+                class="shrink-0"
+              >
+                {{ countdown > 0 ? `${countdown}s` : codeSending ? '发送中' : '获取验证码' }}
+              </Button>
+            </div>
+          </div>
 
-        <div class="form-group">
-          <label class="form-label form-label-required">确认密码</label>
-          <input
-            v-model="confirmPassword"
-            type="password"
-            class="input"
-            placeholder="请再次输入新密码"
-            minlength="6"
-            required
-          />
-        </div>
+          <div class="space-y-2">
+            <Label for="newPassword">新密码 <span class="text-destructive">*</span></Label>
+            <Input
+              id="newPassword"
+              v-model="formData.newPassword"
+              type="password"
+              placeholder="请输入新密码（至少6位）"
+              minlength="6"
+              required
+            />
+          </div>
 
-        <button type="submit" class="btn btn-primary btn-block btn-lg" :disabled="loading">
-          {{ loading ? '重置中...' : '重置密码' }}
-        </button>
-      </form>
+          <div class="space-y-2">
+            <Label for="confirmPassword">确认密码 <span class="text-destructive">*</span></Label>
+            <Input
+              id="confirmPassword"
+              v-model="confirmPassword"
+              type="password"
+              placeholder="请再次输入新密码"
+              minlength="6"
+              required
+            />
+          </div>
 
-      <p class="text text-center text-base mt-sm">
-        想起密码了？
-        <NuxtLink to="/login" class="link">返回登录</NuxtLink>
-      </p>
+          <Button type="submit" class="w-full" :disabled="loading">
+            {{ loading ? '重置中...' : '重置密码' }}
+          </Button>
+        </form>
 
-      <div v-if="error" class="message message-error mt-sm">{{ error }}</div>
-      <div v-if="success" class="message message-success mt-sm">{{ success }}</div>
-    </div>
-  </div>
+        <p class="text-center text-sm text-muted-foreground mt-6">
+          想起密码了？
+          <NuxtLink to="/login" class="text-primary hover:underline">返回登录</NuxtLink>
+        </p>
+
+        <Alert v-if="error" variant="destructive" class="mt-4">
+          <AlertDescription>{{ error }}</AlertDescription>
+        </Alert>
+
+        <Alert v-if="success" class="mt-4">
+          <AlertDescription>{{ success }}</AlertDescription>
+        </Alert>
+      </CardContent>
+    </Card>
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  layout: 'centered'
+})
+
 import { reactive, ref, onUnmounted } from 'vue'
 import { handleApiError } from '~/utils/api'
 import { sendResetPasswordVerification, resetPassword } from '~/api'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 const { setAuth } = useAuth()
 
@@ -181,14 +197,3 @@ onUnmounted(() => {
   }
 })
 </script>
-
-<style scoped>
-.forgot-password-card {
-  max-width: 460px;
-}
-
-.card-header {
-  margin-bottom: var(--space-md);
-  text-align: center;
-}
-</style>

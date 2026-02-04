@@ -1,94 +1,109 @@
 <template>
-  <div class="login-page page-container">
-    <div class="login-card card">
-      <div class="card-header">
-        <h1 class="title-2 title-center">登录</h1>
-        <p class="text text-center text-base mt-sm">欢迎回到博客</p>
-      </div>
+  <Card class="w-full max-w-md">
+      <CardHeader class="text-center">
+        <CardTitle class="text-2xl">登录</CardTitle>
+        <CardDescription>欢迎回到博客</CardDescription>
+      </CardHeader>
 
-      <div class="tabs">
-        <button
-          :class="['tab', { active: loginType === 'password' }]"
-          @click="loginType = 'password'"
-        >
-          密码登录
-        </button>
-        <button
-          :class="['tab', { active: loginType === 'code' }]"
-          @click="loginType = 'code'"
-        >
-          验证码登录
-        </button>
-      </div>
+      <CardContent>
+        <Tabs v-model="loginType" class="w-full">
+          <TabsList class="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="password">密码登录</TabsTrigger>
+            <TabsTrigger value="code">验证码登录</TabsTrigger>
+          </TabsList>
 
-      <form @submit.prevent="handleLogin" class="form">
-        <div class="form-group">
-          <label class="form-label form-label-required">邮箱</label>
-          <input
-            v-model="formData.email"
-            type="email"
-            class="input"
-            placeholder="请输入邮箱"
-            required
-          />
-        </div>
+          <form @submit.prevent="handleLogin" class="space-y-4">
+            <div class="space-y-2">
+              <Label for="email">邮箱 <span class="text-destructive">*</span></Label>
+              <Input
+                id="email"
+                v-model="formData.email"
+                type="email"
+                placeholder="请输入邮箱"
+                required
+              />
+            </div>
 
-        <div v-if="loginType === 'password'" class="form-group">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <label class="form-label form-label-required">密码</label>
-            <NuxtLink to="/forgot-password" class="link text-sm">忘记密码?</NuxtLink>
-          </div>
-          <input
-            v-model="formData.password"
-            type="password"
-            class="input"
-            placeholder="请输入密码"
-            required
-          />
-        </div>
+            <TabsContent value="password" class="mt-0 space-y-4">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <Label for="password">密码 <span class="text-destructive">*</span></Label>
+                  <NuxtLink to="/forgot-password" class="text-sm text-primary hover:underline">
+                    忘记密码?
+                  </NuxtLink>
+                </div>
+                <Input
+                  id="password"
+                  v-model="formData.password"
+                  type="password"
+                  placeholder="请输入密码"
+                  :required="loginType === 'password'"
+                />
+              </div>
+            </TabsContent>
 
-        <div v-else class="form-group">
-          <label class="form-label form-label-required">验证码</label>
-          <div class="input-group">
-            <input
-              v-model="formData.code"
-              type="text"
-              class="input"
-              placeholder="请输入6位验证码"
-              maxlength="6"
-              required
-            />
-            <button
-              type="button"
-              class="btn btn-outline"
-              @click="handleSendCode"
-              :disabled="codeSending || countdown > 0"
-            >
-              {{ countdown > 0 ? `${countdown}s` : codeSending ? '发送中' : '获取验证码' }}
-            </button>
-          </div>
-        </div>
+            <TabsContent value="code" class="mt-0 space-y-4">
+              <div class="space-y-2">
+                <Label for="code">验证码 <span class="text-destructive">*</span></Label>
+                <div class="flex gap-2">
+                  <Input
+                    id="code"
+                    v-model="formData.code"
+                    type="text"
+                    placeholder="请输入6位验证码"
+                    maxlength="6"
+                    class="flex-1"
+                    :required="loginType === 'code'"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    @click="handleSendCode"
+                    :disabled="codeSending || countdown > 0"
+                    class="shrink-0"
+                  >
+                    {{ countdown > 0 ? `${countdown}s` : codeSending ? '发送中' : '获取验证码' }}
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
 
-        <button type="submit" class="btn btn-primary btn-block btn-lg" :disabled="loading">
-          {{ loading ? '登录中...' : '登录' }}
-        </button>
-      </form>
+            <Button type="submit" class="w-full" :disabled="loading">
+              {{ loading ? '登录中...' : '登录' }}
+            </Button>
+          </form>
+        </Tabs>
 
-      <p class="text text-center text-base mt-sm">
-        还没有账号？
-        <NuxtLink to="/register" class="link">立即注册</NuxtLink>
-      </p>
+        <p class="text-center text-sm text-muted-foreground mt-6">
+          还没有账号？
+          <NuxtLink to="/register" class="text-primary hover:underline">立即注册</NuxtLink>
+        </p>
 
-      <div v-if="error" class="message message-error mt-sm">{{ error }}</div>
-      <div v-if="success" class="message message-success mt-sm">{{ success }}</div>
-    </div>
-  </div>
+        <Alert v-if="error" variant="destructive" class="mt-4">
+          <AlertDescription>{{ error }}</AlertDescription>
+        </Alert>
+
+        <Alert v-if="success" class="mt-4">
+          <AlertDescription>{{ success }}</AlertDescription>
+        </Alert>
+      </CardContent>
+    </Card>
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  layout: 'centered'
+})
+
 import { reactive, ref, onUnmounted } from 'vue'
 import { handleApiError } from '~/utils/api'
 import { sendLoginVerification, loginWithPassword, loginWithCode } from '~/api'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 const loginType = ref<'password' | 'code'>('password')
 
@@ -173,14 +188,3 @@ onUnmounted(() => {
   }
 })
 </script>
-
-<style scoped>
-.login-card {
-  max-width: 460px;
-}
-
-.card-header {
-  margin-bottom: var(--space-md);
-  text-align: center;
-}
-</style>

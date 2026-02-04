@@ -15,6 +15,14 @@ datasource db {
   provider = "postgresql"
 }
 
+// 内容创作方式枚举
+enum ContentAuthorship {
+  HUMAN         // 完全由人类创作，无AI参与
+  AI_ASSISTED   // 人类主导创作，AI提供辅助（如润色、语法检查、建议）
+  AI_GENERATED  // 完全由AI生成，人类仅做少量编辑或未编辑
+  COLLABORATIVE // 人类与AI深度协作，各自贡献显著内容
+}
+
 // 用户核心表
 model User {
   id           String  @id @default(uuid()) // 使用 UUID
@@ -120,6 +128,10 @@ model Post {
   // 统计数据
   // 简单计数，如果并发极高(每秒几百次写入)建议以后拆分出去，个人博客足够用
   viewCount Int @default(0) @map("view_count")
+
+  // AI 创作标记
+  aiAuthorship ContentAuthorship @default(HUMAN) @map("ai_authorship") // 内容创作方式
+  aiTool       String?            @map("ai_tool") // 使用的AI工具名称（如 "GPT-4", "Claude"）
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
