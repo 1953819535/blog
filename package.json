@@ -16,6 +16,7 @@
     "db:migrate:deploy": "pnpm --filter @my/prisma exec npx prisma migrate deploy",
     "db:migrate:status": "pnpm --filter @my/prisma exec npx prisma migrate status",
     "db:reset": "pnpm --filter @my/prisma exec npx prisma migrate reset",
+    "db:seed": "pnpm --filter @my/prisma seed",
     "dev:api": "pnpm --filter api start:dev",
     "dev:web": "pnpm --filter web dev",
     "build": "pnpm run db:gen && pnpm -r build",
