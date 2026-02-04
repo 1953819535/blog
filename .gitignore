@@ -60,3 +60,4 @@ Thumbs.db
 # TypeScript incremental build cache
 *.tsbuildinfo
 .claude
+nul
