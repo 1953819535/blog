@@ -37,5 +37,5 @@ export function setupSwagger(app: INestApplication, port: number) {
     }),
   );
 
-  console.log(`docs start on http://localhost:${port}/reference`);
+  console.log(`✅ docs start on http://localhost:${port}/reference`);
 }
