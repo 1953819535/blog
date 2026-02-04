@@ -175,7 +175,19 @@ export class PostService {
     }
 
     // P2025: 记录未找到 (Record not found)
+    // 可能是文章本身不存在，也可能是关联的分类/标签不存在
     if (error.code === 'P2025') {
+      const message = error.meta?.cause || error.message || '';
+
+      // 判断是哪个实体不存在
+      if (message.includes('Category')) {
+        throw new NotFoundException('所选分类不存在');
+      }
+      if (message.includes('Tag')) {
+        throw new NotFoundException('所选标签不存在');
+      }
+
+      // 默认情况：文章不存在
       throw new NotFoundException('文章不存在');
     }
 
