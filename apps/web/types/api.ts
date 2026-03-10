@@ -1,3 +1,5 @@
+import { type UserRole } from "@my/prisma"
+
 /**
  * 通用 API 响应结构
  */
@@ -50,7 +52,8 @@ export interface UserInfo {
   profile?: {
     avatar: string
     bio: string
-  }
+  },
+  roles?: UserRole[]
 }
 
 /**

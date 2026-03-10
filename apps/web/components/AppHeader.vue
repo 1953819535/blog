@@ -61,7 +61,7 @@ const { isLoggedIn, userInfo, clearAuth } = useAuth()
 // 检查是否为管理员
 const isAdmin = computed(() => {
   const roles = userInfo.value?.roles || []
-  return roles.some((r: { roleId: string }) => r.roleId === 'admin')
+  return roles.some((r) => r.roleId === 'admin')
 })
 
 const handleLogout = () => {
