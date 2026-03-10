@@ -4,6 +4,7 @@ import { CreateCategoryDto } from './dto/create-category.dto.js';
 import { UpdateCategoryDto } from './dto/update-category.dto.js';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Category } from '@my/prisma';
+import { Public } from '../../common/index.js';
 
 
 @ApiTags('分类')
@@ -18,12 +19,14 @@ export class CategoryController {
   }
 
   @ApiOperation({ summary: '获取所有分类' })
+  @Public()
   @Get()
   findAll(): Promise<Category[]> {
     return this.categoryService.findAll();
   }
 
   @ApiOperation({ summary: '根据ID获取分类' })
+  @Public()
   @Get(':id')
   findOne(
     // 自动验证 id 是否为 uuid，不是则抛出 400 Bad Request

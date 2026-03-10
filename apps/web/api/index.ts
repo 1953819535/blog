@@ -11,3 +11,12 @@ export * from './user'
 
 // 文章相关 API
 export * from './post'
+
+// 分类相关 API
+export * from './category'
+
+// 标签相关 API
+export * from './tag'
+
+// 上传相关 API
+export * from './upload'

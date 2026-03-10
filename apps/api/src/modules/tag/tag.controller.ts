@@ -4,6 +4,7 @@ import { CreateTagDto } from './dto/create-tag.dto.js';
 import { UpdateTagDto } from './dto/update-tag.dto.js';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Tag } from '@my/prisma';
+import { Public } from '../../common/index.js';
 
 @ApiTags('标签')
 @Controller('tags')
@@ -17,12 +18,14 @@ export class TagController {
   }
 
   @ApiOperation({ summary: '获取所有标签' })
+  @Public()
   @Get()
   findAll(): Promise<Tag[]> {
     return this.tagService.findAll();
   }
 
   @ApiOperation({ summary: '根据ID获取标签' })
+  @Public()
   @Get(':id')
   findOne(
     @Param('id', new ParseUUIDPipe()) id: string

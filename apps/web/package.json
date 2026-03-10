@@ -20,6 +20,7 @@
     "lucide-vue-next": "^0.563.0",
     "marked": "^17.0.1",
     "marked-highlight": "^2.2.3",
+    "md-editor-v3": "^6.4.0",
     "nuxt": "^4.2.2",
     "reka-ui": "^2.8.0",
     "shadcn-nuxt": "2.4.3",

@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:16-alpine
+    container_name: blog-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: blog
+      POSTGRES_PASSWORD: blog_password
+      POSTGRES_DB: blog
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U blog -d blog"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: blog-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # API 后端
+  api:
+    build:
+      context: ../
+      dockerfile: apps/api/Dockerfile
+    container_name: blog-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://blog:blog_password@postgres:5432/blog
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: your-jwt-secret-change-in-production
+      JWT_EXPIRES_IN: 7d
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY}
+      R2_BUCKET_NAME: ${R2_BUCKET_NAME}
+      R2_PUBLIC_URL: ${R2_PUBLIC_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "3010:3010"
+    command: sh -c "npx prisma migrate deploy && node apps/api/dist/main.js"
+    working_dir: /app
+
+  # Web 前端
+  web:
+    build:
+      context: ../
+      dockerfile: apps/web/Dockerfile
+    container_name: blog-web
+    restart: unless-stopped
+    environment:
+      NUXT_PUBLIC_API_BASE_URL: http://api:3010/api
+    depends_on:
+      - api
+    ports:
+      - "3020:3020"
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: blog-network
